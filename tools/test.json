@@ -1,0 +1,39 @@
+{
+    "buildings": [
+        {
+            "atSupply": 14,
+            "type": "Build",
+            "unit": "SUPPLYDEPOT",
+            "targetQuantity": 1
+        },
+        {
+            "atSupply": 16,
+            "type": "Build",
+            "unit": "BARRACKS",
+            "targetQuantity": 1
+        },
+        {
+            "atSupply": 16,
+            "type": "Build",
+            "unit": "REFINERY",
+            "targetQuantity": 1
+        },
+        {
+            "atSupply": 18,
+            "type": "Build",
+            "unit": "ENGINEERINGBAY",
+            "targetQuantity": 1
+        },
+        {
+            "atSupply": 18,
+            "type": "Research",
+            "unit": "INFTANTRY_WEAPONS_LEVEL_1"
+        },
+        {
+            "atSupply": 20,
+            "type": "Expand",
+            "unit": "COMMANDCENTER",
+            "targetQuantity": 1
+        }
+    ]
+}
