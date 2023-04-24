@@ -41,7 +41,6 @@ class Jimmy(BotAI):
         
         if iterationdelay == 10:
                 iterationdelay = 0
-                print("reset iterationdelay count")
         
         #starting command center is now cc variable
         cc: Unit = ccs.first
@@ -88,7 +87,7 @@ class Jimmy(BotAI):
                         near=cc.position.towards(self.game_info.map_center, 8),
                     )
 
-            # Build refineries if we don't have any
+            # Build a refinery if we don't have any
             elif self.structures(UnitTypeId.BARRACKS) and self.gas_buildings.amount < 1:
                 if self.can_afford(UnitTypeId.REFINERY):
                     vgs: Units = self.vespene_geyser.closer_than(20, cc)
@@ -131,7 +130,7 @@ class Jimmy(BotAI):
                             ).random_on_distance(8),
                         )
         # Saturate refineries
-        # This sort of works and self corrects, but it assigns workers too quickly if they don't get there
+        # This sort of works and self corrects, but it assigns workers too quickly if they don't get there fast enough
         # Maybe bringing in some type of delay without pausing the script or just sending one and making check have to go through a basic adding script to once it
         # goes through 10 iterations, it checks it again - could be good to delay some things this way, not only gas
         # this str((datetime.now()).second)[1] must end in 0 in order for it to kick off
