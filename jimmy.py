@@ -7,6 +7,7 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2, Point3
 from sc2.unit import Unit
 from sc2.units import Units
+from datetime import datetime
 
 
 #Used base BurnySC2 Bot base to make Jimmy https://github.com/BurnySc2/python-sc2/tree/3ca497e1d1e8390da1633c79939c22d5f9b12c39
@@ -28,6 +29,20 @@ class Jimmy(BotAI):
                 unit.attack(target)
             return
 
+        #Start a 10 iteration counting method
+        # Once 10 has gone by, reset it to 0
+        # This can be used to keep some built in delays
+        # maybe not as efficient: (datetime.now()).second will give seconds
+        # can create 1 or 2 second delays, str((datetime.now()).second)[1] gives second digit properly
+        if 'iterationdelay' in locals():
+            iterationdelay = iterationdelay+1
+        else:
+            iterationdelay = 0
+        
+        if iterationdelay == 10:
+                iterationdelay = 0
+                print("reset iterationdelay count")
+        
         #starting command center is now cc variable
         cc: Unit = ccs.first
         
@@ -73,8 +88,8 @@ class Jimmy(BotAI):
                         near=cc.position.towards(self.game_info.map_center, 8),
                     )
 
-            # Build refineries if we have less than 2
-            elif self.structures(UnitTypeId.BARRACKS) and self.gas_buildings.amount < 2:
+            # Build refineries if we don't have any
+            elif self.structures(UnitTypeId.BARRACKS) and self.gas_buildings.amount < 1:
                 if self.can_afford(UnitTypeId.REFINERY):
                     vgs: Units = self.vespene_geyser.closer_than(20, cc)
                     for vg in vgs:
@@ -116,10 +131,16 @@ class Jimmy(BotAI):
                             ).random_on_distance(8),
                         )
         # Saturate refineries
+        # This sort of works and self corrects, but it assigns workers too quickly if they don't get there
+        # Maybe bringing in some type of delay without pausing the script or just sending one and making check have to go through a basic adding script to once it
+        # goes through 10 iterations, it checks it again - could be good to delay some things this way, not only gas
+        # this str((datetime.now()).second)[1] must end in 0 in order for it to kick off
+        # it will create a slow addition of SCVs and only add them to refineries if they aren't optimal every 10 seconds for checks
+        # downside is it will create uneven gas mining times but better to do that than add 4 at once
         for refinery in self.gas_buildings:
-            if refinery.assigned_harvesters < refinery.ideal_harvesters:
+            if refinery.assigned_harvesters < refinery.ideal_harvesters and iteration == 0:
                 worker: Units = self.workers.closer_than(10, refinery)
-                if worker:
+                if worker and str((datetime.now()).second)[1] == "0":
                     worker.random.gather(refinery)
 
         #1 CC
@@ -142,6 +163,9 @@ class Jimmy(BotAI):
                 rax.train(UnitTypeId.MARINE)
 
         # Send idle workers to gather minerals near command center
+        # this has no checks and puts more idle workers than the CC can manage
+        # would rather the SCV be put to proper use for build times and perhaps stay idle
+        # early build times, SCV should go out to first expansion base, build supply depots non-stop, etc
         for scv in self.workers.idle:
             scv.gather(self.mineral_field.closest_to(cc))
 

@@ -22,3 +22,11 @@ _TODO List:_
 - Determine when enemy will be strongest after upgrades from Terrans are done
 - Push when enemy is weakest/after 1/1 upgrades for bio
 - SCV Scout Placement - outside enemy base or perpendicular to enemy base
+
+
+- Current Build order:
+- 14 > Supply Depot
+- 16 > Barracks
+- 16 > Refinery
+- 18 > Supply Depot
+- 
