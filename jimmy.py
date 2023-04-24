@@ -137,9 +137,9 @@ class Jimmy(BotAI):
         # it will create a slow addition of SCVs and only add them to refineries if they aren't optimal every 10 seconds for checks
         # downside is it will create uneven gas mining times but better to do that than add 4 at once
         for refinery in self.gas_buildings:
-            if refinery.assigned_harvesters < refinery.ideal_harvesters and iteration == 0:
+            if refinery.assigned_harvesters < refinery.ideal_harvesters and str((datetime.now()).second)[1] == "0":
                 worker: Units = self.workers.closer_than(10, refinery)
-                if worker and str((datetime.now()).second)[1] == "0":
+                if worker:
                     worker.random.gather(refinery)
 
         #1 CC
