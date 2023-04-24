@@ -1,0 +1,40 @@
+{
+    "buildings": [
+        {
+            "unit": "SUPPLYDEPOT",
+            "action": "Build",
+            "atSupply": 14,
+            "targetQuantity": 1
+        },
+        {
+            "unit": "BARRACKS",
+            "action": "Build",
+            "atSupply": 16,
+            "targetQuantity": 1
+        },
+        {
+            "unit": "REFINERY",
+            "action": "Build",
+            "atSupply": 16,
+            "targetQuantity": 1
+        },
+        {
+            "unit": "ENGINEERINGBAY",
+            "action": "Build",
+            "atSupply": 18,
+            "targetQuantity": 1
+        },
+        {
+            "unit": "TerranInfantryWeaponsLevel1",
+            "action": "Research",
+            "atSupply": 18,
+            "id": 7
+        },
+        {
+            "unit": "COMMANDCENTER",
+            "action": "Expand",
+            "atSupply": 20,
+            "targetQuantity": 1
+        }
+    ]
+}
