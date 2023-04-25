@@ -1,40 +1,54 @@
 {
-    "buildings": [
+    "quickbuild": [
         {
-            "unit": "SUPPLYDEPOT",
+            "name": "SupplyDepot",
+            "id": 19,
+            "type": "structure",
             "action": "Build",
-            "atSupply": 14,
-            "targetQuantity": 1
+            "targetQuantity": 1,
+            "supply": 14,
+            "time": "00:00",
+            "frame": 0
         },
         {
-            "unit": "BARRACKS",
+            "name": "Barracks",
+            "id": 21,
+            "type": "structure",
             "action": "Build",
-            "atSupply": 16,
-            "targetQuantity": 1
+            "targetQuantity": 1,
+            "supply": 16,
+            "time": "00:58",
+            "frame": 100
         },
         {
-            "unit": "REFINERY",
+            "name": "Refinery",
+            "id": 20,
+            "type": "structure",
             "action": "Build",
-            "atSupply": 16,
-            "targetQuantity": 1
+            "targetQuantity": 1,
+            "supply": 16,
+            "time": "00:44",
+            "frame": 300
         },
         {
-            "unit": "ENGINEERINGBAY",
+            "name": "EngineeringBay",
+            "id": 22,
+            "type": "structure",
             "action": "Build",
-            "atSupply": 18,
-            "targetQuantity": 1
+            "targetQuantity": 1,
+            "supply": 62,
+            "time": "04:25",
+            "frame": 400 
         },
         {
-            "unit": "TerranInfantryWeaponsLevel1",
-            "action": "Research",
-            "atSupply": 18,
-            "id": 7
-        },
-        {
-            "unit": "COMMANDCENTER",
+            "name": "CommandCenter",
+            "id": 18,
+            "type": "structure",
             "action": "Expand",
-            "atSupply": 20,
-            "targetQuantity": 1
+            "targetQuantity": 1,
+            "supply": 20,
+            "time": "01:39",
+            "frame": 500
         }
     ]
 }
