@@ -19,7 +19,9 @@ class CompetitiveBot(BotAI):
         # Do things here before the game starts
 
     async def on_step(self, iteration):
-        build_order = BuildManager()
+        #CCs: Units = self.townhalls(UnitTypeId.COMMANDCENTER)
+        #cc: Unit = CCs.first
+        self.BuildManager = BuildManager(self)
 
     async def on_end(self):
         print("Game ended.")
