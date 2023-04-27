@@ -13,34 +13,50 @@ from sc2.units import Units
 
 class BuildManager():
     def __init__(self, bot: BotAI):
-        self.bot = bot
-        #self.queue = [["SUPPLYDEPOT", "build", 15, 1]] #debug
-        #self.execute_build_queue(self.queue)
+       self.bot = bot
+        #self.queue = [["SUPPLYDEPOT", "build", 15, 1], ["BARRACKS", "build", 15, 1]]
+        #self.build_progress()
 
     @staticmethod
     async def create(bot: BotAI) -> 'BuildManager':
-        queue = [["SUPPLYDEPOT", "build", 15, 1], ["COMMANDCENTER", "build", 15, 1]]
         instance = BuildManager(bot)
-        await instance.execute_build_queue(queue)
+        await instance.execute_build_queue()
         return instance
     
-    async def execute_build_queue(self, queue):
+    async def execute_build_queue(self):
+        queue = [["SUPPLYDEPOT", "build", 15, 1], ["BARRACKS", "build", 15, 1]]
         for active in queue:
             unit_name, action, atSupply, quantity = active
-            
-            if self.can_build(unit_name):
+
+            if self.check_prerequisites(unit_name, quantity):
                 await self.build_unit(unit_name)
             else:
                 continue
             
-            queue.remove(active)
+            print(queue[0])
+            queue.remove(active) #not working
 
     #check prerequisites(minerals/gas, under construction, already existing)
-    def can_build(self, unit_name):
-        if self.bot.can_afford(UnitTypeId[unit_name]):
+    def check_prerequisites(self, unit_name, quantity):
+        if self.bot.can_afford(UnitTypeId[unit_name]) and not self.bot.structures(UnitTypeId[unit_name]):
             return True
         else:
             return False  
+        
+    def build_progress(self):
+        structures = self.bot.structures
+        structure_counts = {}
+
+        for unit in structures:
+            if unit.name in structure_counts:
+                structure_counts[unit.name] += 1
+            else:
+                structure_counts[unit.name] = 1
+
+        sorted_structure_counts = sorted(structure_counts.items())
+
+        print(sorted_structure_counts)  #debug
+        #return sorted_structure_counts 
     
     #build request execution
     async def build_unit(self, unit_name):

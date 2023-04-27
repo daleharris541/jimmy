@@ -276,7 +276,7 @@ class BuildOrder:
 
 def main():
     run_game(
-        maps.get("(2)CatalystLE"),
+        maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.VeryEasy)],
         realtime=True,
     )
