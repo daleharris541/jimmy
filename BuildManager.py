@@ -1,4 +1,5 @@
 from tools import makeBuildOrder
+
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.unit import Unit
@@ -9,41 +10,44 @@ from sc2.units import Units
 #   -Track Build order progress
 #   -Building placement.
 #   -Rebuild destroyed structures
-#   -Send workers back to Comand Center / Mining
 
 class BuildManager():
-    def __init__(self, bot : BotAI):
+    def __init__(self, bot: BotAI):
         self.bot = bot
         #self.queue = [["SUPPLYDEPOT", "build", 15, 1]] #debug
         #self.execute_build_queue(self.queue)
-        self.debug()
 
-    def execute_build_queue(self, queue):
+    @staticmethod
+    async def create(bot: BotAI) -> 'BuildManager':
+        queue = [["SUPPLYDEPOT", "build", 15, 1], ["COMMANDCENTER", "build", 15, 1]]
+        instance = BuildManager(bot)
+        await instance.execute_build_queue(queue)
+        return instance
+    
+    async def execute_build_queue(self, queue):
         for active in queue:
-            unit_name, action, at_supply, quantity = active
+            unit_name, action, atSupply, quantity = active
             
             if self.can_build(unit_name):
-                self.build_unit(unit_name)
+                await self.build_unit(unit_name)
             else:
                 continue
             
             queue.remove(active)
 
+    #check prerequisites(minerals/gas, under construction, already existing)
     def can_build(self, unit_name):
-        return True #debug
-        
+        if self.bot.can_afford(UnitTypeId[unit_name]):
+            return True
+        else:
+            return False  
+    
+    #build request execution
+    async def build_unit(self, unit_name):
+        CCs: Units = self.bot.townhalls(UnitTypeId.COMMANDCENTER)   #remove - debug only / main base logic
+        cc: Unit = CCs.first                                        #remove - debug only / main base logic
+        if self.bot.can_afford(UnitTypeId[unit_name]):
+            await self.bot.build(UnitTypeId[unit_name], near=cc.position.towards(self.bot.game_info.map_center, 8)) #building placement logic missing
 
-    def build_unit(self, unit_name):
-        print("one")
-        pass
-
-    def debug(self):
-        CCs: Units = self.bot.townhalls(UnitTypeId.COMMANDCENTER)
-        cc: Unit = CCs.first
-        if self.bot.can_afford(UnitTypeId.SUPPLYDEPOT):
-            print(f"ComandCenter {cc.position} | MapCenter {self.bot.game_info.map_center}")
-            #self.bot.townhalls[0].train(UnitTypeId.SCV)
-            #self.bot.build(UnitTypeId.SUPPLYDEPOT, near=cc.position.towards(self.bot.game_info.map_center, 8))
-        
     def getBuildOrder(self):
         return makeBuildOrder('tools/test.json')

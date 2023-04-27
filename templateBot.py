@@ -19,14 +19,11 @@ class CompetitiveBot(BotAI):
         # Do things here before the game starts
 
     async def on_step(self, iteration):
-        #CCs: Units = self.townhalls(UnitTypeId.COMMANDCENTER)
-        #cc: Unit = CCs.first
-        self.BuildManager = BuildManager(self)
+        self.BuildManager = await BuildManager.create(self)
 
     async def on_end(self):
         print("Game ended.")
         # Do things here after the game ends
-
 
 def main():
     run_game(
@@ -34,7 +31,6 @@ def main():
         [Bot(Race.Terran, CompetitiveBot()), Computer(Race.Zerg, Difficulty.Easy)],
         realtime=False,
     )
-
 
 if __name__ == "__main__":
     main()
