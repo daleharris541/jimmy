@@ -21,7 +21,7 @@
             "frame": 100
         },
         {
-            "name": "BARRACKS",
+            "name": "ENGINEERINGBAY",
             "id": 21,
             "type": "structure",
             "action": "Build",

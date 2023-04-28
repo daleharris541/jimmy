@@ -77,6 +77,8 @@ class Jimmy(BotAI):
         if await build_next(self, self.build_order[self.buildstep]):
             if self.buildstep < (len(self.build_order) -1):
                 self.buildstep = self.buildstep + 1
+            else:
+                print("buid order finished")
 
         #    print("true")
         #else: 
