@@ -21,14 +21,14 @@
             "frame": 100
         },
         {
-            "name": "ENGINEERINGBAY",
-            "id": 22,
+            "name": "BARRACKS",
+            "id": 21,
             "type": "structure",
             "action": "Build",
             "targetQuantity": 1,
-            "supply": 62,
-            "time": "04:25",
-            "frame": 400 
+            "supply": 16,
+            "time": "00:58",
+            "frame": 100
         },
         {
             "name": "COMMANDCENTER",
