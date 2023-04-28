@@ -1,3 +1,4 @@
-sc2/
 __pycache__
 tools/__pycache__
+*.log
+jimmyalterego/
