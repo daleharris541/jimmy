@@ -1,44 +1,26 @@
-{
-    "quickbuild": [
-        {
-            "name": "SUPPLYDEPOT",
-            "id": 19,
-            "type": "structure",
-            "action": "Build",
-            "targetQuantity": 1,
-            "supply": 14,
-            "time": "00:00",
-            "frame": 0
-        },
-        {
-            "name": "BARRACKS",
-            "id": 21,
-            "type": "structure",
-            "action": "Build",
-            "targetQuantity": 1,
-            "supply": 16,
-            "time": "00:58",
-            "frame": 100
-        },
-        {
-            "name": "ENGINEERINGBAY",
-            "id": 21,
-            "type": "structure",
-            "action": "Build",
-            "targetQuantity": 1,
-            "supply": 16,
-            "time": "00:58",
-            "frame": 100
-        },
-        {
-            "name": "COMMANDCENTER",
-            "id": 18,
-            "type": "structure",
-            "action": "Expand",
-            "targetQuantity": 1,
-            "supply": 20,
-            "time": "01:39",
-            "frame": 500
-        }
-    ]
-}
+[
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:11",
+        "frame": 248
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 21,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:33",
+        "frame": 751
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 12,
+        "time": "01:21",
+        "frame": 1814
+    }
+]

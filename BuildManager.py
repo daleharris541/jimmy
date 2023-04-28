@@ -33,8 +33,7 @@ def build_progress(self: BotAI):
 
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self : BotAI, buildrequest):
-    unit_name, unitId, unitType, action, quantity, supplyrequired, time, frame = buildrequest
-
+    unit_name, unitId, unitType, supplyrequired, time, frame = buildrequest
     if self.supply_used < supplyrequired:
         print(f"Cannot build, current supply: {self.supply_used}")
         return False

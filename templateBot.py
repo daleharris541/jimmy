@@ -71,14 +71,17 @@ class Jimmy(BotAI):
                 unit.attack(target)
             return
         
-        if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
-            self.cc.train(UnitTypeId.SCV)
-        
-        if await build_next(self, self.build_order[self.buildstep]):
-            if self.buildstep < (len(self.build_order) -1):
-                self.buildstep = self.buildstep + 1
-            else:
-                print("buid order finished")
+        #if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
+        #    self.cc.train(UnitTypeId.SCV)
+        print("New iteration: " + str(iteration))
+        print("Build Step: " + str(self.buildstep))
+        print("Build Order: " + str(len(self.build_order)))
+        if self.buildstep != len(self.build_order):
+            if await build_next(self, self.build_order[self.buildstep]):
+                if self.buildstep < (len(self.build_order)):
+                    self.buildstep = self.buildstep + 1
+                else:
+                    print("buid order finished")
 
         #    print("true")
         #else: 
@@ -98,7 +101,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":
