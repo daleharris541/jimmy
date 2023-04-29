@@ -33,12 +33,13 @@ def build_progress(self: BotAI):
 
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self : BotAI, buildrequest):
-    unit_name, unitId, unitType, supplyrequired, time, frame = buildrequest
+    unit_name, unitId, unitType, supplyrequired, gametime, frame = buildrequest
     if self.supply_used < supplyrequired:
         print(f"Cannot build, current supply: {self.supply_used}")
         return False
     
-    if self.can_afford(UnitTypeId[unit_name]):
+    if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
+        print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         await build_unit(self, unit_name)
         return True
 
@@ -46,7 +47,7 @@ async def build_next(self : BotAI, buildrequest):
 async def build_unit(self : BotAI, unit_name):
     CCs: Units = self.townhalls(UnitTypeId.COMMANDCENTER)
     cc: Unit = CCs.first
-    await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 10)) #building placement logic missing
+    await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
 
 def getBuildOrder(self : BotAI, strategy):
     build_order = None

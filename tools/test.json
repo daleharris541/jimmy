@@ -8,7 +8,7 @@
         "frame": 248
     },
     {
-        "name": "SupplyDepot",
+        "name": "Barracks",
         "id": 21,
         "type": "structure",
         "supply": 12,
@@ -16,11 +16,51 @@
         "frame": 751
     },
     {
-        "name": "SupplyDepot",
+        "name": "Barracks",
         "id": 19,
         "type": "structure",
         "supply": 12,
         "time": "01:21",
         "frame": 1814
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:33",
+        "frame": 751
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:33",
+        "frame": 751
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:33",
+        "frame": 751
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:33",
+        "frame": 751
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 12,
+        "time": "00:33",
+        "frame": 751
     }
 ]
