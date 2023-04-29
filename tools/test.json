@@ -5,7 +5,7 @@
         "type": "structure",
         "supply": 12,
         "time": "00:11",
-        "frame": 248
+        "frame": 0
     },
     {
         "name": "Barracks",
@@ -13,15 +13,15 @@
         "type": "structure",
         "supply": 12,
         "time": "00:33",
-        "frame": 751
+        "frame": 0
     },
     {
         "name": "Barracks",
-        "id": 19,
+        "id": 21,
         "type": "structure",
         "supply": 12,
-        "time": "01:21",
-        "frame": 1814
+        "time": "0:42",
+        "frame": 0
     },
     {
         "name": "Barracks",
