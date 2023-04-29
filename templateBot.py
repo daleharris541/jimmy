@@ -73,9 +73,6 @@ class Jimmy(BotAI):
         
         #if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
         #    self.cc.train(UnitTypeId.SCV)
-        print("New iteration: " + str(iteration))
-        print("Build Step: " + str(self.buildstep))
-        print("Build Order: " + str(len(self.build_order)))
         if self.buildstep != len(self.build_order):
             if await build_next(self, self.build_order[self.buildstep]):
                 if self.buildstep < (len(self.build_order)):
