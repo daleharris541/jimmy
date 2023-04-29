@@ -13,8 +13,6 @@ from sc2.units import Units
 
 #Current bugs 
 #   -cant build refinery because of fixed location
-#   -json build order not compatible UnitTypeId
-#   -last objekt in BuildOrder get build constantly (coud be fixed with quantity)
        
 def build_progress(self: BotAI):
     structures = self.structures

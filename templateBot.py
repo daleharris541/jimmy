@@ -53,15 +53,7 @@ class Jimmy(BotAI):
         else:
             print("Build order failed to load")
         
-
-        # If we don't have a townhall anymore, send all units to attack
-        
-
     async def on_step(self, iteration: int):
-        #self.BuildManager = await BuildManager.create(self)
-        # if Bob.build_order[buildstep].contains("structure"):
-        #     if self.can_afford(UnitTypeId[Bob.build_order[buildstep]]) and not self.already_pending(UnitTypeId.SUPPLYDEPOT):
-        #         Bob.build_next(Bob.build_order[buildstep])
 
         if not self.CCs:
             target: Point2 = self.enemy_structures.random_or(
@@ -73,6 +65,7 @@ class Jimmy(BotAI):
         
         #if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
         #    self.cc.train(UnitTypeId.SCV)
+        
         if self.buildstep != len(self.build_order):
             if await build_next(self, self.build_order[self.buildstep]):
                 if self.buildstep < (len(self.build_order)):
@@ -80,15 +73,7 @@ class Jimmy(BotAI):
                 else:
                     print("buid order finished")
 
-        #    print("true")
-        #else: 
-        #    print("false")
         #print(self.buildstep)
-
-        #finally:
-            #print("After doing everything, I'm doing this")
-        #print(Bob.build_order)
-        #Tell Bob to execute build order until we tell him to stop
 
     async def on_end(self):
         print("Game ended.")
