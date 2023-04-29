@@ -8,7 +8,7 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from BuildManager import getBuildOrder, build_next
+from BuildManager import getBuildOrder, build_next, build_progress
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -74,6 +74,7 @@ class Jimmy(BotAI):
                     print("buid order finished")
 
         #print(self.buildstep)
+        build_progress(self, self.build_order,self.buildstep)
 
     async def on_end(self):
         print("Game ended.")

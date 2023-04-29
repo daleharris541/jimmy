@@ -14,20 +14,28 @@ from sc2.units import Units
 #Current bugs 
 #   -cant build refinery because of fixed location
        
-def build_progress(self: BotAI):
+def build_progress(self: BotAI, build_order, buildstep):
     structures = self.structures
-    structure_counts = {}
-
+    current_structures = {}
     for unit in structures:
-        if unit.name in structure_counts:
-            structure_counts[unit.name] += 1
+        uppercase_name = unit.name.upper()
+        if uppercase_name in current_structures:
+            current_structures[uppercase_name] += 1
         else:
-            structure_counts[unit.name] = 1
+            current_structures[uppercase_name] = 1
+    sorted_current_structures = sorted(current_structures.items())
 
-    sorted_structure_counts = sorted(structure_counts.items())
-
-    #print(sorted_structure_counts)  #debug
-    return sorted_structure_counts
+    expected_structures = {}
+    for i in range(buildstep):
+        if build_order[i][0] in expected_structures:
+            expected_structures[build_order[i][0]] += 1
+        else:
+            expected_structures[build_order[i][0]] = 1
+    sorted_expected_structures = sorted(expected_structures.items())
+    
+    print(f"Current Structures: {sorted_current_structures}")
+    print(f"Expected Structures: {sorted_expected_structures}")  #debug
+    #return sorted_structure_counts
 
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self : BotAI, buildrequest):
