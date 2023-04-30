@@ -70,13 +70,16 @@ async def combine_and_check(self: BotAI, build_order, buildstep):
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self : BotAI, buildrequest):
     unit_name, unitId, unitType, supplyrequired, gametime, frame = buildrequest
-    if self.supply_used < supplyrequired:
-        #print(f"Cannot build, current supply: {self.supply_used}")
-        return False
-    
-    if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
-        #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
-        await build_unit(self, unit_name)
+    if unitType == 'structure':
+        if self.supply_used < supplyrequired:
+            #print(f"Cannot build, current supply: {self.supply_used}")
+            return False
+        
+        if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
+            #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
+            await build_unit(self, unit_name)
+            return True
+    else:
         return True
 
 #construction order

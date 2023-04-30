@@ -38,7 +38,7 @@ class Jimmy(BotAI):
         self.buildstep = 0
 
         self.worker = None
-        self.build_order = getBuildOrder(self,'test')    #BuildManager(self)
+        self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
 
         super().__init__()
 
@@ -64,15 +64,15 @@ class Jimmy(BotAI):
                 unit.attack(target)
             return
         
-        #if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
-        #    self.cc.train(UnitTypeId.SCV)
+        if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
+            self.cc.train(UnitTypeId.SCV)
         
         if self.buildstep != len(self.build_order):
             if await build_next(self, self.build_order[self.buildstep]):
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
 
-        await combine_and_check(self, self.build_order, self.buildstep) #debug
+        #await combine_and_check(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
@@ -82,7 +82,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":
