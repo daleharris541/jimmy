@@ -8,7 +8,7 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from BuildManager import getBuildOrder, build_next, build_progress
+from BuildManager import getBuildOrder, build_next, combine_and_check
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -37,6 +37,7 @@ class Jimmy(BotAI):
         self.scouted_at_time = -1000                 # save moment at which we scouted, so that we don't re-send units every frame
         self.buildstep = 0
 
+        self.worker = None
         self.build_order = getBuildOrder(self,'test')    #BuildManager(self)
 
         super().__init__()
@@ -70,11 +71,8 @@ class Jimmy(BotAI):
             if await build_next(self, self.build_order[self.buildstep]):
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
-                else:
-                    print("buid order finished")
 
-        #print(self.buildstep)
-        build_progress(self, self.build_order,self.buildstep)
+        await combine_and_check(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")

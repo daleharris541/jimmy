@@ -15,7 +15,7 @@ from sc2.units import Units
 #   -cant build refinery because of fixed location
        
 def build_progress(self: BotAI, build_order, buildstep):
-    structures = self.structures
+    structures = [structure for structure in self.structures if structure.is_ready]
     current_structures = {}
     for unit in structures:
         uppercase_name = unit.name.upper()
@@ -33,19 +33,49 @@ def build_progress(self: BotAI, build_order, buildstep):
             expected_structures[build_order[i][0]] = 1
     sorted_expected_structures = sorted(expected_structures.items())
     
-    print(f"Current Structures: {sorted_current_structures}")
-    print(f"Expected Structures: {sorted_expected_structures}")  #debug
-    #return sorted_structure_counts
+    #print(f"Current Structures:  {sorted_current_structures}")
+    #print(f"Expected Structures: {sorted_expected_structures}")
+    return dict(sorted_current_structures), dict(sorted_expected_structures)
+
+async def get_workers_constructing_building(self: BotAI):
+    constructing_structures = {}
+    worker_and_order = []
+    constructing_workers = [(unit.tag, unit.orders[0].ability) for unit in self.units(UnitTypeId.SCV) if unit.is_constructing_scv and unit.order_target is not None]
+    for obj in constructing_workers:
+        tag = int(obj[0])
+        name = str(obj[1]).split("=")[1].strip(")").strip("'")
+        worker_and_order.append([tag, name])
+        
+    for structure in worker_and_order:
+        uppercase_name = structure[1].upper()
+        if uppercase_name in constructing_structures:
+            constructing_structures[uppercase_name] += 1
+        else:
+            constructing_structures[uppercase_name] = 1
+
+    #print(constructing_structures)
+    return dict(constructing_structures)
+
+async def combine_and_check(self: BotAI, build_order, buildstep):
+    cur_and_const = {}
+    current_structures, expected_structures = build_progress(self, build_order, buildstep)
+    constructing_structures = await get_workers_constructing_building(self)
+
+    #TODO:
+    #combine current_structures with constructing_structures in cur_and_const
+    #compare expected_structures with cur_and_const
+
+    print(constructing_structures)  #debug
 
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self : BotAI, buildrequest):
     unit_name, unitId, unitType, supplyrequired, gametime, frame = buildrequest
     if self.supply_used < supplyrequired:
-        print(f"Cannot build, current supply: {self.supply_used}")
+        #print(f"Cannot build, current supply: {self.supply_used}")
         return False
     
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
-        print(self.tech_requirement_progress(UnitTypeId[unit_name]))
+        #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         await build_unit(self, unit_name)
         return True
 
