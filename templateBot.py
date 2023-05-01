@@ -8,7 +8,9 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from BuildManager import getBuildOrder, build_next, combine_and_check
+from managers.BuildManager import getBuildOrder, combine_and_check, build_unit
+from managers.ArmyManager import trainUnit
+from managers.ccManager import trainSCV
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -38,7 +40,7 @@ class Jimmy(BotAI):
         self.buildstep = 0
 
         self.worker = None
-        self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
+        self.build_order = getBuildOrder(self,'test')    #BuildManager(self)
 
         super().__init__()
 
@@ -64,25 +66,48 @@ class Jimmy(BotAI):
                 unit.attack(target)
             return
         
-        if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
-            self.cc.train(UnitTypeId.SCV)
+        #if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
+        #    self.cc.train(UnitTypeId.SCV)
         
         if self.buildstep != len(self.build_order):
             if await build_next(self, self.build_order[self.buildstep]):
+                #TODO: keep this code until combine_and_check finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
+                #send to combine_and_check
 
-        #await combine_and_check(self, self.build_order, self.buildstep) #debug
+        await combine_and_check(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
         # Do things here after the game ends
 
+#check prerequisites(minerals/gas, under construction, already existing)
+async def build_next(self: BotAI, buildrequest):
+    unit_name, unitId, unitType, supplyrequired, gametime, frame = buildrequest
+    if self.supply_used < supplyrequired:
+        #print(f"Cannot build, current supply: {self.supply_used}")
+        return False    
+            
+    if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
+        #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
+        if unitType == 'structure':
+            await build_unit(self, unit_name, unitType) #building placement logic missing
+            return True
+        elif unitType == 'unit':
+            #send to armyManager
+            await trainUnit(self, unit_name)
+            return True
+        elif unitType == 'worker':
+            #send to ccManager
+            await trainSCV(self, unit_name)
+            return True
+
 def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":
