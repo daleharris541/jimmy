@@ -62,10 +62,13 @@ async def combine_and_check(self: BotAI, build_order, buildstep):
     constructing_structures = await get_workers_constructing_building(self)
 
     #TODO:
-    #combine current_structures with constructing_structures in cur_and_const
     #compare expected_structures with cur_and_const
 
-    print(constructing_structures)  #debug
+    for key in set(current_structures.keys()) | set(constructing_structures.keys()):
+        value = current_structures.get(key, 0) + constructing_structures.get(key, 0)
+        cur_and_const[key] = value if key in current_structures and key in constructing_structures else value
+
+    print(cur_and_const)  #debug
 
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self : BotAI, buildrequest):
