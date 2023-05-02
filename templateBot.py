@@ -10,7 +10,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 from managers.BuildManager import getBuildOrder, compare_dicts, build_structure
 from managers.ArmyManager import trainUnit
-from managers.ccManager import trainSCV, buildGas
+from managers.CC_Manager import trainSCV, buildGas
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 

@@ -1,4 +1,8 @@
 __pycache__
+example/__pycache__
+managers/__pycache__
+sc2/__pycache__
+strategies/__pycache__
 tools/__pycache__
 *.log
 jimmyalterego/
