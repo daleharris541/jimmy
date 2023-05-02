@@ -8,7 +8,7 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from managers.BuildManager import getBuildOrder, combine_and_check, build_unit
+from managers.BuildManager import getBuildOrder, compare_dicts, build_unit
 from managers.ArmyManager import trainUnit
 from managers.ccManager import trainSCV, buildGas
 
@@ -68,23 +68,23 @@ class Jimmy(BotAI):
             return
         
         if self.buildstep != len(self.build_order):
-            #if self.build_order[self.buildstep][0] != 'REFINERY':
             if await build_next(self, self.build_order[self.buildstep], self.vgs):
-                #TODO: keep this code until combine_and_check finished
+                #TODO: keep this code until the check against the current buildings is finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
-                #send to combine_and_check
-            #await combine_and_check(self, self.build_order, self.buildstep) #debug
+                #send to check against build order step
+
+        await compare_dicts(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
         # Do things here after the game ends
 
-#check prerequisites(minerals/gas, under construction, already existing)
+#check prerequisites
 async def build_next(self: BotAI, buildrequest, vgs):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
-    print("Unit Name: SupplyRequired : Actual Supply Used")
-    print(unit_name + " : " + str(supplyRequired) + ":" + str(self.supply_used))
+    #print("Unit Name: SupplyRequired : Actual Supply Used")
+    #print(unit_name + " : " + str(supplyRequired) + ":" + str(self.supply_used))
     if unitType == 'action':
             #pass to microManager (and skip since supply checks will pass, but can_afford will not)
             return True
@@ -131,7 +131,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":
