@@ -74,9 +74,8 @@ async def combine_and_check(self: BotAI, build_order, buildstep):
 #construction order
 async def build_unit(self : BotAI, unit_name, unitType):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    #loc_cc = cc.position.towards(self.game_info.map_center, 8)
     await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
-
-
 
 def getBuildOrder(self : BotAI, strategy):
     build_order = None
