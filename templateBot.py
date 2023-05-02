@@ -10,7 +10,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 from managers.BuildManager import getBuildOrder, combine_and_check, build_unit
 from managers.ArmyManager import trainUnit
-from managers.ccManager import trainSCV
+from managers.ccManager import trainSCV, buildGas
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -38,9 +38,9 @@ class Jimmy(BotAI):
         self.produce_from_barracks = True
         self.scouted_at_time = -1000                 # save moment at which we scouted, so that we don't re-send units every frame
         self.buildstep = 0
-
+        self.scvpool = 12
         self.worker = None
-        self.build_order = getBuildOrder(self,'test')    #BuildManager(self)
+        self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
 
         super().__init__()
 
@@ -55,6 +55,8 @@ class Jimmy(BotAI):
             print(self.build_order)
         else:
             print("Build order failed to load")
+
+        self.vgs: Units = self.vespene_geyser.closer_than(20, self.cc)
         
     async def on_step(self, iteration: int):
 
@@ -66,24 +68,21 @@ class Jimmy(BotAI):
                 unit.attack(target)
             return
         
-        #if self.can_afford(UnitTypeId.SCV) and self.supply_workers < 17 and self.cc.is_idle:
-        #    self.cc.train(UnitTypeId.SCV)
-        
         if self.buildstep != len(self.build_order):
-            if await build_next(self, self.build_order[self.buildstep]):
+            if await build_next(self, self.build_order[self.buildstep], self.vgs):
                 #TODO: keep this code until combine_and_check finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
                 #send to combine_and_check
 
-        await combine_and_check(self, self.build_order, self.buildstep) #debug
+        #await combine_and_check(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
         # Do things here after the game ends
 
 #check prerequisites(minerals/gas, under construction, already existing)
-async def build_next(self: BotAI, buildrequest):
+async def build_next(self: BotAI, buildrequest, vgs):
     unit_name, unitId, unitType, supplyrequired, gametime, frame = buildrequest
     if self.supply_used < supplyrequired:
         #print(f"Cannot build, current supply: {self.supply_used}")
@@ -92,8 +91,13 @@ async def build_next(self: BotAI, buildrequest):
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         if unitType == 'structure':
-            await build_unit(self, unit_name, unitType) #building placement logic missing
-            return True
+            if unit_name == 'Refinery':
+                #pass to ccManager vgs
+                await buildGas(self, vgs)
+                return True
+            else:
+                await build_unit(self, unit_name, unitType) #building placement logic missing
+                return True
         elif unitType == 'unit':
             #send to armyManager
             await trainUnit(self, unit_name)
@@ -101,6 +105,7 @@ async def build_next(self: BotAI, buildrequest):
         elif unitType == 'worker':
             #send to ccManager
             await trainSCV(self, unit_name)
+            #scvpool += 1
             return True
 
 def main():
