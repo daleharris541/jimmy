@@ -83,8 +83,8 @@ class Jimmy(BotAI):
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self: BotAI, buildrequest, vgs):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
-    print("Unit Name: SupplyRequired")
-    print(unit_name + " : " + str(supplyRequired))
+    print("Unit Name: SupplyRequired : Actual Supply Used")
+    print(unit_name + " : " + str(supplyRequired) + ":" + str(self.supply_used))
     if unitType == 'action':
             #pass to microManager (and skip since supply checks will pass, but can_afford will not)
             return True
@@ -97,9 +97,20 @@ async def build_next(self: BotAI, buildrequest, vgs):
         if unitType == 'structure':
             if unit_name == 'REFINERY':
                 #pass to ccManager vgs
-                print("I made it to refinery and shouldn't have")
                 await buildGas(self, vgs)
                 return True
+            elif unit_name == 'ORBITALCOMMAND':
+                #TODO Currently it gets stuck and never moves into this until much later. Can afford it but it may have something to do with tech_requirement_progress
+                #TODO Need to move this code to ccManager after we get it working in this area
+                print("If we are seeing this, it means we are on the proper code for Orbital Command")
+                # Morph commandcenter to orbitalcommand
+                # Check if tech requirement for orbital is complete (e.g. you need a barracks to be able to morph an orbital)
+                orbital_tech_requirement: float = self.tech_requirement_progress(
+                    UnitTypeId.ORBITALCOMMAND
+                )
+                print("Orbital Command Tech Requirement = " + str(orbital_tech_requirement))
+                self.cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
+                return True #this will allow the step to increase
             else:
                 await build_unit(self, unit_name, unitType) #building placement logic missing
                 return True
