@@ -35,4 +35,16 @@ async def buildGas(self: BotAI, vgs):
     #loc_vespene = getVespenes()
     for vg in vgs:
          worker: Unit = self.select_build_worker(vg.position)
-         worker.build_gas(vg)
+         if worker.build_gas(vg):
+            return True
+         break
+    
+async def saturateGas(self: BotAI):
+    refineries = self.gas_buildings
+    for refinery in refineries:
+        if refinery.assigned_harvesters < refinery.ideal_harvesters:
+                worker: Units = self.workers.closer_than(10, refinery)
+                if worker:
+                    worker.random.gather(refinery)
+        else:
+             return True

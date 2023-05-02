@@ -11,7 +11,7 @@ from sc2.units import Units
 #   -Building placement.            -not started
 #   -Rebuild destroyed structures   -not started
  
-async def gat_build_progress(self: BotAI):
+async def get_build_progress(self: BotAI):
     structures = [structure for structure in self.structures if structure.is_ready]
     current_structures = {}
     for unit in structures:
@@ -56,7 +56,7 @@ async def get_constructing_orders(self: BotAI):
 
 async def combine_dicts(self: BotAI):
     combined_dict = {}
-    current_structures = await gat_build_progress(self)
+    current_structures = await get_build_progress(self)
     constructing_structures = await get_constructing_orders(self)
 
     for key in set(current_structures.keys()) | set(constructing_structures.keys()):
@@ -89,6 +89,10 @@ async def build_structure(self : BotAI, unit_name):
     await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
 
 def getBuildOrder(self : BotAI, strategy):
+    """
+    The build order is a json file you must parse.
+    It returns a list of items matching the json keys.
+    """
     build_order = None
     build_order = makeBuildOrder('strategies/' + strategy + '.json')
     if build_order is not None:

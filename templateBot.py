@@ -8,9 +8,10 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
+from loguru import logger
 from managers.BuildManager import getBuildOrder, compare_dicts, build_structure
 from managers.ArmyManager import trainUnit
-from managers.CC_Manager import trainSCV, buildGas
+from managers.CC_Manager import trainSCV, buildGas, saturateGas
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -41,7 +42,7 @@ class Jimmy(BotAI):
         self.worker_pool = 12
         self.worker = None
         self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
-
+        self.debug = True
         super().__init__()
 
     async def on_start(self):
@@ -56,6 +57,7 @@ class Jimmy(BotAI):
         else:
             print("Build order failed to load")
         self.vgs: Units = self.vespene_geyser.closer_than(20, self.cc)
+        #self.barracks_pp: Point2 = self.main_base_ramp.barracks_correct_placement
         
     async def on_step(self, iteration: int):
 
@@ -83,32 +85,43 @@ class Jimmy(BotAI):
 #check prerequisites
 async def build_next(self: BotAI, buildrequest, vgs):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
-    #print("Unit Name: SupplyRequired : Actual Supply Used")
-    #print(unit_name + " : " + str(supplyRequired) + ":" + str(self.supply_used))
+    #example for how to read time target and execution:
+    #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
+    if self.debug:print("Unit Name: SupplyRequired : Supply Used: Target Time - " + str(gametime) + ": Current Minerals")
+    if self.debug:print(unit_name + "          " + str(supplyRequired) + "             " + str(self.supply_used) + "           " + (str(self.time)).split(".")[0] + "        " + str(self.minerals))
+    #logger.info(f"Executing at {self.time} - Step Time = {gametime}")
+    #would be cool to subtract the timing of the build based on actual and show ahead or behind
+
     if unitType == 'action':
             #pass to microManager (and skip since supply checks will pass, but can_afford will not)
-            return True
-    if self.supply_used < supplyRequired:
-        #print(f"Cannot build, current supply: {self.supply_used}")
-        return False    
-            
+            if unit_name == '3WORKER_TO_GAS':
+                await saturateGas(self)
+                return True
+    # if self.supply_used < supplyRequired-1:
+    #     #print(f"Cannot build, current supply: {self.supply_used}")
+    #     return False    
+    workers = self.workers.gathering
+    worker: Unit = workers.random
+    cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    #if ((self.calculate_cost(UnitTypeId[unit_name]).minerals) - self.minerals) > -35 and unitType == 'structure' and unit_name != 'REFINERY':
+        #worker.move(self, self.barracks_pp) #pre-move our SCVs to shorten build time
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         if unitType == 'structure':
             if unit_name == 'REFINERY':
                 #pass to ccManager vgs
-                await buildGas(self, vgs)
-                return True
+                if await buildGas(self, vgs):
+                    return True
             elif unit_name == 'ORBITALCOMMAND':
                 #TODO Currently it gets stuck and never moves into this until much later. Can afford it but it may have something to do with tech_requirement_progress
                 #TODO Need to move this code to ccManager after we get it working in this area
-                print("If we are seeing this, it means we are on the proper code for Orbital Command")
+                #print("If we are seeing this, it means we are on the proper code for Orbital Command")
                 # Morph commandcenter to orbitalcommand
                 # Check if tech requirement for orbital is complete (e.g. you need a barracks to be able to morph an orbital)
-                orbital_tech_requirement: float = self.tech_requirement_progress(
-                    UnitTypeId.ORBITALCOMMAND
-                )
-                print("Orbital Command Tech Requirement = " + str(orbital_tech_requirement))
+                #orbital_tech_requirement: float = self.tech_requirement_progress(
+                    #UnitTypeId.ORBITALCOMMAND
+                #)
+                #print("Orbital Command Tech Requirement = " + str(orbital_tech_requirement))
                 self.cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
                 return True #this will allow the step to increase
             else:
@@ -128,7 +141,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":

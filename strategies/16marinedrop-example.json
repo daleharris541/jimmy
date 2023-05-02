@@ -19,7 +19,7 @@
         "name": "SupplyDepot",
         "id": 19,
         "type": "structure",
-        "supply": 14,
+        "supply": 13,
         "time": "00:18",
         "frame": 423
     },
@@ -32,6 +32,14 @@
         "frame": 544
     },
     {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 16,
+        "time": "00:41",
+        "frame": 926
+    },
+    {
         "name": "SCV",
         "id": 45,
         "type": "worker",
@@ -40,12 +48,12 @@
         "frame": 904
     },
     {
-        "name": "Barracks",
-        "id": 21,
-        "type": "structure",
-        "supply": 16,
-        "time": "00:41",
-        "frame": 926
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 17,
+        "time": "01:05",
+        "frame": 1469
     },
     {
         "name": "Refinery",
@@ -72,12 +80,12 @@
         "frame": 1469
     },
     {
-        "name": "SCV",
-        "id": 45,
-        "type": "worker",
-        "supply": 17,
-        "time": "01:05",
-        "frame": 1469
+        "name": "OrbitalCommand",
+        "id": 132,
+        "type": "structure",
+        "supply": 19,
+        "time": "01:29",
+        "frame": 2013
     },
     {
         "name": "SCV",
@@ -86,14 +94,6 @@
         "supply": 18,
         "time": "01:17",
         "frame": 1741
-    },
-    {
-        "name": "OrbitalCommand",
-        "id": 132,
-        "type": "structure",
-        "supply": 19,
-        "time": "01:29",
-        "frame": 2013
     },
     {
         "name": "Reaper",
