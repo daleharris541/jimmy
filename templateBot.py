@@ -55,7 +55,6 @@ class Jimmy(BotAI):
             print(self.build_order)
         else:
             print("Build order failed to load")
-
         self.vgs: Units = self.vespene_geyser.closer_than(20, self.cc)
         
     async def on_step(self, iteration: int):
@@ -69,13 +68,13 @@ class Jimmy(BotAI):
             return
         
         if self.buildstep != len(self.build_order):
+            #if self.build_order[self.buildstep][0] != 'REFINERY':
             if await build_next(self, self.build_order[self.buildstep], self.vgs):
                 #TODO: keep this code until combine_and_check finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
                 #send to combine_and_check
-
-        #await combine_and_check(self, self.build_order, self.buildstep) #debug
+            #await combine_and_check(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
@@ -83,16 +82,22 @@ class Jimmy(BotAI):
 
 #check prerequisites(minerals/gas, under construction, already existing)
 async def build_next(self: BotAI, buildrequest, vgs):
-    unit_name, unitId, unitType, supplyrequired, gametime, frame = buildrequest
-    if self.supply_used < supplyrequired:
+    unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
+    print("Unit Name: SupplyRequired")
+    print(unit_name + " : " + str(supplyRequired))
+    if unitType == 'action':
+            #pass to microManager (and skip since supply checks will pass, but can_afford will not)
+            return True
+    if self.supply_used < supplyRequired:
         #print(f"Cannot build, current supply: {self.supply_used}")
         return False    
             
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         if unitType == 'structure':
-            if unit_name == 'Refinery':
+            if unit_name == 'REFINERY':
                 #pass to ccManager vgs
+                print("I made it to refinery and shouldn't have")
                 await buildGas(self, vgs)
                 return True
             else:
@@ -107,12 +112,15 @@ async def build_next(self: BotAI, buildrequest, vgs):
             await trainSCV(self, unit_name)
             #scvpool += 1
             return True
+        elif unitType == 'action':
+            #pass to microManager
+            return True
 
 def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":

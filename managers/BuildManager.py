@@ -11,8 +11,6 @@ from sc2.units import Units
 #   -Building placement.            -not started
 #   -Rebuild destroyed structures   -not started
 
-#Current bugs 
-#   -cant build refinery because of fixed location
        
 def build_progress(self: BotAI, build_order, buildstep):
     structures = [structure for structure in self.structures if structure.is_ready]

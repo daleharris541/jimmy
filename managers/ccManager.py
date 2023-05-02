@@ -26,14 +26,13 @@ async def getIdleSCVS(self: BotAI):
 async def getVespenes(self: BotAI):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     vgs: Units = self.vespene_geyser.closer_than(20, cc)
-    loc_vespene = []
-    for vg in vgs:
-        loc_vespene.append(vg.position)
+    #loc_vespene = []
+    #for vg in vgs:
+        #loc_vespene.append(vg.position)
+    return vgs
 
 async def buildGas(self: BotAI, vgs):
-    v = []
+    #loc_vespene = getVespenes()
     for vg in vgs:
-        v.append(vg.position)
-    
-    worker: Unit = self.select_build_worker(v[0].position)
-    worker.build_gas(v[0])
+         worker: Unit = self.select_build_worker(vg.position)
+         worker.build_gas(vg)
