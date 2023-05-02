@@ -84,7 +84,7 @@ async def compare_dicts(self: BotAI, build_order, buildstep):
 
 
 #construction order
-async def build_unit(self : BotAI, unit_name, unitType):
+async def build_structure(self : BotAI, unit_name):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
 

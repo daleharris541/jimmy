@@ -8,7 +8,7 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-from managers.BuildManager import getBuildOrder, compare_dicts, build_unit
+from managers.BuildManager import getBuildOrder, compare_dicts, build_structure
 from managers.ArmyManager import trainUnit
 from managers.ccManager import trainSCV, buildGas
 
@@ -38,7 +38,7 @@ class Jimmy(BotAI):
         self.produce_from_barracks = True
         self.scouted_at_time = -1000                 # save moment at which we scouted, so that we don't re-send units every frame
         self.buildstep = 0
-        self.scvpool = 12
+        self.worker_pool = 12
         self.worker = None
         self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
 
@@ -112,19 +112,16 @@ async def build_next(self: BotAI, buildrequest, vgs):
                 self.cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
                 return True #this will allow the step to increase
             else:
-                await build_unit(self, unit_name, unitType) #building placement logic missing
+                await build_structure(self, unit_name) #building placement logic missing
                 return True
         elif unitType == 'unit':
             #send to armyManager
             await trainUnit(self, unit_name)
             return True
         elif unitType == 'worker':
-            #send to ccManager
+            #send to worker_pool and training order to CC_Manager
+            #worker_pool += 1
             await trainSCV(self, unit_name)
-            #scvpool += 1
-            return True
-        elif unitType == 'action':
-            #pass to microManager
             return True
 
 def main():
