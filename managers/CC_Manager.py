@@ -1,5 +1,6 @@
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
+from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 
@@ -16,12 +17,17 @@ async def trainSCV(self: BotAI, unit_name):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     if self.can_afford(UnitTypeId[unit_name]):
         cc.train(UnitTypeId[unit_name])
-    pass
 
 async def getIdleSCVS(self: BotAI):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     for scv in self.workers.idle:
             scv.gather(self.mineral_field.closest_to(cc))
+
+async def call_down_mule(self: BotAI):
+        """This function calls down a MULE to the nearest mineral field."""
+        if self.bot.minerals > 300:
+            closest_mineral_field = self.state.mineral_field.closest_to(self.townhall)
+            await self.bot.do(self.townhall(AbilityId.CALLDOWNMULE_CALLDOWNMULE, closest_mineral_field))
 
 async def getVespenes(self: BotAI):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
@@ -40,13 +46,9 @@ async def buildGas(self: BotAI, vgs):
          break
     
 async def saturateGas(self: BotAI):
-    test = 1
     refineries = self.gas_buildings
-    for refinery in refineries:
-        if test < 3: #3 used to be refinery.ideal_harvesters but the variable returns 0 refinery.assigned_harvesters
-            worker: Units = self.workers.closer_than(10, refinery)
-            if worker:
-                worker.random.gather(refinery)
-                test =+ 1
-        else:
-             return True
+    if refineries:
+        refinery = refineries.random
+        workers = self.workers.random_group_of(2)
+        for worker in workers:
+            worker.gather(refinery)

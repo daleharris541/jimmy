@@ -9,8 +9,8 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 from loguru import logger
-from managers.BuildManager import getBuildOrder, compare_dicts, build_structure
-from managers.ArmyManager import trainUnit
+from managers.BuildManager import get_build_order, compare_dicts, build_structure
+from managers.ArmyManager import train_unit
 from managers.CC_Manager import trainSCV, buildGas, saturateGas
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
@@ -41,7 +41,7 @@ class Jimmy(BotAI):
         self.buildstep = 0
         self.worker_pool = 12
         self.worker = None
-        self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
+        self.build_order = get_build_order(self,'16marinedrop-example')    #BuildManager(self)
         self.debug = False
         super().__init__()
 
@@ -98,18 +98,22 @@ async def build_next(self: BotAI, buildrequest, vgs):
         if unit_name == '3WORKER_TO_GAS':
             await saturateGas(self)
             return True
+        else:
+            #TODO pass to manager
+            return True
         
-    # if self.supply_used < supplyRequired-1:
-    #     #print(f"Cannot build, current supply: {self.supply_used}")
-    #     return False
+    if self.supply_used < supplyRequired-1:
+        #print(f"Cannot build, current supply: {self.supply_used}")
+        return False
 
     #if ((self.calculate_cost(UnitTypeId[unit_name]).minerals) - self.minerals) > -35 and unitType == 'structure' and unit_name != 'REFINERY':
         #worker.move(self, self.barracks_pp) #pre-move our SCVs to shorten build time
+
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         if unitType == 'structure':
             if unit_name == 'REFINERY':
-                #pass to ccManager vgs
+                #pass to CC_Manager vgs
                 if await buildGas(self, vgs):
                     return True
             elif unit_name == 'ORBITALCOMMAND':
@@ -129,11 +133,11 @@ async def build_next(self: BotAI, buildrequest, vgs):
                 return True
         elif unitType == 'unit':
             #send to armyManager
-            await trainUnit(self, unit_name)
+            await train_unit(self, unit_name)
             return True
         elif unitType == 'worker':
             #send to worker_pool and training order to CC_Manager
-            #worker_pool += 1
+            worker_pool =+ 1 
             await trainSCV(self, unit_name)
             return True
 

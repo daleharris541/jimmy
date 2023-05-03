@@ -88,7 +88,7 @@ async def build_structure(self : BotAI, unit_name):
     cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
 
-def getBuildOrder(self : BotAI, strategy):
+def get_build_order(self : BotAI, strategy):
     """
     The build order is a json file you must parse.
     It returns a list of items matching the json keys.
