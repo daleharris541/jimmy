@@ -102,9 +102,9 @@ async def build_next(self: BotAI, buildrequest, vgs):
             #TODO pass to manager
             return True
         
-    if self.supply_used < supplyRequired-1:
+    #if self.supply_used < supplyRequired-1:
         #print(f"Cannot build, current supply: {self.supply_used}")
-        return False
+        #return False
 
     #if ((self.calculate_cost(UnitTypeId[unit_name]).minerals) - self.minerals) > -35 and unitType == 'structure' and unit_name != 'REFINERY':
         #worker.move(self, self.barracks_pp) #pre-move our SCVs to shorten build time

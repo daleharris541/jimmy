@@ -2,6 +2,7 @@ from tools import makeBuildOrder
 
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
+from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 
@@ -87,7 +88,11 @@ async def compare_dicts(self: BotAI, build_order, buildstep):
 async def build_structure(self : BotAI, unit_name):
     #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     cc : Unit = self.townhalls.first
-    await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
+    if unit_name == 'BARRACKSREACTOR':
+        for barracks in self.structures(UnitTypeId.BARRACKS).ready.idle:
+            barracks.train(AbilityId.BUILD_REACTOR_BARRACKS)
+    else:
+        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
 
 def get_build_order(self : BotAI, strategy):
     """
