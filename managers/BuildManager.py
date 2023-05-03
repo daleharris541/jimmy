@@ -88,9 +88,11 @@ async def compare_dicts(self: BotAI, build_order, buildstep):
 async def build_structure(self : BotAI, unit_name):
     #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     cc : Unit = self.townhalls.first
+    #TODO #8 Reactor doesn't work - may break everything
     if unit_name == 'BARRACKSREACTOR':
         for barracks in self.structures(UnitTypeId.BARRACKS).ready.idle:
-            barracks.train(AbilityId.BUILD_REACTOR_BARRACKS)
+            if barracks.train(AbilityId.BUILD_REACTOR_BARRACKS):
+                return True
     else:
         await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
 
