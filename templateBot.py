@@ -11,7 +11,7 @@ from sc2.units import Units
 from loguru import logger
 from managers.BuildManager import get_build_order, compare_dicts, build_structure
 from managers.ArmyManager import train_unit
-from managers.CC_Manager import trainSCV, buildGas, saturateGas
+from managers.CC_Manager import trainSCV, buildGas, saturateGas, upgradeCC
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -42,7 +42,7 @@ class Jimmy(BotAI):
         self.worker_pool = 12
         self.worker = None
         self.build_order = get_build_order(self,'16marinedrop-example')    #BuildManager(self)
-        self.debug = False
+        self.debug = True
         super().__init__()
 
     async def on_start(self):
@@ -117,17 +117,9 @@ async def build_next(self: BotAI, buildrequest, vgs):
                 if await buildGas(self, vgs):
                     return True
             elif unit_name == 'ORBITALCOMMAND':
-                #TODO Currently it gets stuck and never moves into this until much later. Can afford it but it may have something to do with tech_requirement_progress
-                #TODO Need to move this code to ccManager after we get it working in this area
-                #print("If we are seeing this, it means we are on the proper code for Orbital Command")
-                # Morph commandcenter to orbitalcommand
-                # Check if tech requirement for orbital is complete (e.g. you need a barracks to be able to morph an orbital)
-                #orbital_tech_requirement: float = self.tech_requirement_progress(
-                    #UnitTypeId.ORBITALCOMMAND
-                #)
-                #print("Orbital Command Tech Requirement = " + str(orbital_tech_requirement))
-                self.cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
-                return True #this will allow the step to increase
+                #TODO #5 Need to move this code to ccManager after we get it working in this area
+                if await upgradeCC(self, unit_name):
+                    return True #this will allow the step to increase
             else:
                 await build_structure(self, unit_name) #building placement logic missing
                 return True
@@ -142,6 +134,11 @@ async def build_next(self: BotAI, buildrequest, vgs):
             return True
 
 def main():
+    # run_game(
+    #     maps.get("BerlingradAIE"),
+    #     [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
+    #     realtime=True,
+    # )
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],

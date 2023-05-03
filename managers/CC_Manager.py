@@ -14,12 +14,15 @@ async def ccHealthCheck(self: BotAI):
     pass
 
 async def trainSCV(self: BotAI, unit_name):
-    cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    #TODO #7 When command center is upgraded to Orbital command, this no longer works
+    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    cc : Unit = self.townhalls.first
     if self.can_afford(UnitTypeId[unit_name]):
         cc.train(UnitTypeId[unit_name])
 
 async def getIdleSCVS(self: BotAI):
-    cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    cc : Unit = self.townhalls.first
     for scv in self.workers.idle:
             scv.gather(self.mineral_field.closest_to(cc))
 
@@ -30,7 +33,8 @@ async def call_down_mule(self: BotAI):
             await self.bot.do(self.townhall(AbilityId.CALLDOWNMULE_CALLDOWNMULE, closest_mineral_field))
 
 async def getVespenes(self: BotAI):
-    cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    cc : Unit = self.townhalls.first
     vgs: Units = self.vespene_geyser.closer_than(20, cc)
     #loc_vespene = []
     #for vg in vgs:
@@ -52,3 +56,14 @@ async def saturateGas(self: BotAI):
         workers = self.workers.random_group_of(2)
         for worker in workers:
             worker.gather(refinery)
+
+async def upgradeCC(self: BotAI, unit_name):
+    if unit_name == 'ORBITALCOMMAND':
+         if self.cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND):
+            return True
+    elif unit_name == 'PLANETARYFORTRESS':
+        if self.cc(AbilityId.UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS):
+            return True
+    else:
+        return False
+    
