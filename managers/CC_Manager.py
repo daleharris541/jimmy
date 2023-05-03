@@ -40,11 +40,13 @@ async def buildGas(self: BotAI, vgs):
          break
     
 async def saturateGas(self: BotAI):
+    test = 1
     refineries = self.gas_buildings
     for refinery in refineries:
-        if refinery.assigned_harvesters < refinery.ideal_harvesters:
-                worker: Units = self.workers.closer_than(10, refinery)
-                if worker:
-                    worker.random.gather(refinery)
+        if test < 3: #3 used to be refinery.ideal_harvesters but the variable returns 0 refinery.assigned_harvesters
+            worker: Units = self.workers.closer_than(10, refinery)
+            if worker:
+                worker.random.gather(refinery)
+                test =+ 1
         else:
              return True
