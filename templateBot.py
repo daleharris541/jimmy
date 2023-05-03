@@ -42,7 +42,7 @@ class Jimmy(BotAI):
         self.worker_pool = 12
         self.worker = None
         self.build_order = getBuildOrder(self,'16marinedrop-example')    #BuildManager(self)
-        self.debug = True
+        self.debug = False
         super().__init__()
 
     async def on_start(self):
@@ -56,6 +56,7 @@ class Jimmy(BotAI):
             print(self.build_order)
         else:
             print("Build order failed to load")
+
         self.vgs: Units = self.vespene_geyser.closer_than(20, self.cc)
         #self.barracks_pp: Point2 = self.main_base_ramp.barracks_correct_placement
         
@@ -76,7 +77,7 @@ class Jimmy(BotAI):
                     self.buildstep = self.buildstep + 1
                 #send to check against build order step
 
-        await compare_dicts(self, self.build_order, self.buildstep) #debug
+        #await compare_dicts(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
@@ -93,16 +94,15 @@ async def build_next(self: BotAI, buildrequest, vgs):
     #would be cool to subtract the timing of the build based on actual and show ahead or behind
 
     if unitType == 'action':
-            #pass to microManager (and skip since supply checks will pass, but can_afford will not)
-            if unit_name == '3WORKER_TO_GAS':
-                await saturateGas(self)
-                return True
+        #pass to microManager (and skip since supply checks will pass, but can_afford will not)
+        if unit_name == '3WORKER_TO_GAS':
+            await saturateGas(self)
+            return True
+        
     # if self.supply_used < supplyRequired-1:
     #     #print(f"Cannot build, current supply: {self.supply_used}")
-    #     return False    
-    workers = self.workers.gathering
-    worker: Unit = workers.random
-    cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    #     return False
+
     #if ((self.calculate_cost(UnitTypeId[unit_name]).minerals) - self.minerals) > -35 and unitType == 'structure' and unit_name != 'REFINERY':
         #worker.move(self, self.barracks_pp) #pre-move our SCVs to shorten build time
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
@@ -141,7 +141,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":
