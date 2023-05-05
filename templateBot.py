@@ -11,7 +11,7 @@ from sc2.units import Units
 from loguru import logger
 from managers.BuildManager import get_build_order, compare_dicts, build_structure
 from managers.ArmyManager import train_unit
-from managers.CC_Manager import trainSCV, buildGas, saturateGas, upgradeCC
+from managers.CC_Manager import CC_Manager
 from managers.UpgradeManager import research_upgrade
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
@@ -38,7 +38,8 @@ class Jimmy(BotAI):
         self.scouted_at_time = -1000                 # save moment at which we scouted, so that we don't re-send units every frame
         self.buildstep = 0
         self.worker_pool = 12
-        self.worker = None
+        self.cc_managers = []
+
         self.build_order = get_build_order(self,'16marinedrop-example')    #BuildManager(self)
         self.debug = True
 
@@ -58,16 +59,22 @@ class Jimmy(BotAI):
         #self.barracks_pp: Point2 = self.main_base_ramp.barracks_correct_placement
         
     async def on_step(self, iteration: int):
-        if not self.CCs:
-            target: Point2 = self.enemy_structures.random_or(
-                self.enemy_start_locations[0]
-            ).position
-            for unit in self.workers | self.units(UnitTypeId.MARINE):
-                unit.attack(target)
-            return
+        # Find all Command Centers
+        cc_list = self.townhalls
+        # Create a new CC_Manager instance for each Command Center if it doesn't already exist
+        for cc in cc_list:
+            if not any(cc_manager.townhall.tag == cc.tag for cc_manager in self.cc_managers):
+                cc_manager = CC_Manager(self, cc)
+                self.cc_managers.append(cc_manager)
+
+        # Call the manage_cc function for each CC_Manager instance
+        for cc_manager in self.cc_managers:
+            await cc_manager.manage_cc(self.worker_pool)
+
+        await self.cc_managers[0].train_worker(self.worker_pool)
         
         if self.buildstep != len(self.build_order):
-            if await build_next(self, self.build_order[self.buildstep], self.vgs):
+            if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
@@ -80,9 +87,9 @@ class Jimmy(BotAI):
         # Do things here after the game ends
 
 #check prerequisites
-async def build_next(self: BotAI, buildrequest, vgs):
-    
+async def build_next(self: BotAI, buildrequest, cc_managers):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
+    
     #example for how to read time target and execution:
     #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
     if self.debug:
@@ -92,47 +99,28 @@ async def build_next(self: BotAI, buildrequest, vgs):
     #would be cool to subtract the timing of the build based on actual and show ahead or behind
 
     if unitType == 'action':
-        #pass to microManager (and skip since supply checks will pass, but can_afford will not)
-        if unit_name == '3WORKER_TO_GAS':
-            await saturateGas(self)
-            return True
-        else:
-            #TODO pass to manager
-            return True
+        #skip actions
+        return True
     elif unitType == 'upgrade':
         await research_upgrade(self, unit_name)
         return True
-    
-    #if self.supply_used < supplyRequired-1:
-        #print(f"Cannot build, current supply: {self.supply_used}")
-        #return False
-
-    #if ((self.calculate_cost(UnitTypeId[unit_name]).minerals) - self.minerals) > -35 and unitType == 'structure' and unit_name != 'REFINERY':
-        #worker.move(self, self.barracks_pp) #pre-move our SCVs to shorten build time
-    #Really bad coding practice here:
 
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
-        #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
         if unitType == 'structure':
             if unit_name == 'REFINERY':
-                #pass to CC_Manager vgs
-                if await buildGas(self, vgs):
-                    return True
+                cc_managers[0].build_refinery()
+                return True
             elif unit_name == 'ORBITALCOMMAND':
-                #TODO #5 Need to move this code to ccManager after we get it working in this area
-                if await upgradeCC(self, unit_name):
-                    return True #this will allow the step to increase
+                cc_managers[0].upgrade_orbital_command()
+                return True
             else:
                 await build_structure(self, unit_name) #building placement logic missing
                 return True
         elif unitType == 'unit':
-            #send to armyManager
-            #await train_unit(self, unit_name)
+            #skip unit training
             return True
         elif unitType == 'worker':
-            #send to worker_pool and training order to CC_Manager
-            worker_pool =+ 1 
-            await trainSCV(self, unit_name)
+            await cc_managers[0].train_worker(70)
             return True
 
 def main():

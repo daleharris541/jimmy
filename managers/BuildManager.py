@@ -95,7 +95,7 @@ async def build_structure(self : BotAI, unit_name):
                     return True
             else:
                 return False
-        return False
+        
     if unit_name == 'BARRACKSTECHLAB':
         for barrack in self.structures(UnitTypeId.BARRACKS).ready.idle:
             if not barrack.has_add_on and barrack.add_on_position:
@@ -103,12 +103,12 @@ async def build_structure(self : BotAI, unit_name):
                     return True
             else:
                 return False
-        return False
+        
     else:
         if unit_name == "SUPPLYDEPOT":
-            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 6)) 
+            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5)) 
         else:
-            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 15)) 
+            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12)) 
 
 def get_build_order(self : BotAI, strategy):
     """
