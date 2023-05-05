@@ -34,9 +34,6 @@ class Jimmy(BotAI):
         self.townhall_saturations = {}               # lists the mineral saturation of townhalls in queues of 40 frames, we consider the townhall saturated if max_number + 1 >= ideal_number
         self.refineries_age = {}                     # this is here to tackle an issue with refineries having 0 workers on them when finished, although the building worker is assigned to it
         self.lifted_cc_pos = {}                      # remember where lifted ccs were
-        self.produce_from_starports = True
-        self.produce_from_factories = True
-        self.produce_from_barracks = True
         self.scouted_at_time = -1000                 # save moment at which we scouted, so that we don't re-send units every frame
         self.buildstep = 0
         self.worker_pool = 12
@@ -44,6 +41,8 @@ class Jimmy(BotAI):
         self.build_order = get_build_order(self,'16marinedrop-example')    #BuildManager(self)
         self.debug = True
         super().__init__()
+
+        
 
     async def on_start(self):
         #print("Game started")
@@ -56,6 +55,8 @@ class Jimmy(BotAI):
             print(self.build_order)
         else:
             print("Build order failed to load")
+        global skipme
+        skipme = False
 
         self.vgs: Units = self.vespene_geyser.closer_than(20, self.cc)
         #self.barracks_pp: Point2 = self.main_base_ramp.barracks_correct_placement
@@ -71,7 +72,7 @@ class Jimmy(BotAI):
             return
         
         if self.buildstep != len(self.build_order):
-            if await build_next(self, self.build_order[self.buildstep], self.vgs):
+            if await build_next(self, self.build_order[self.buildstep], self.vgs, skipme):
                 #TODO: keep this code until the check against the current buildings is finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
@@ -84,7 +85,8 @@ class Jimmy(BotAI):
         # Do things here after the game ends
 
 #check prerequisites
-async def build_next(self: BotAI, buildrequest, vgs):
+async def build_next(self: BotAI, buildrequest, vgs, skipme):
+    
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
     #example for how to read time target and execution:
     #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
@@ -101,37 +103,50 @@ async def build_next(self: BotAI, buildrequest, vgs):
         else:
             #TODO pass to manager
             return True
-        
+    elif unitType == 'upgrade':
+        print("I have an Upgrade!!")
+        if unit_name == 'STIMPACK':
+            #unit_name = 'BARRACKSTECHLABRESEARCH_STIMPACK'
+            skipme = True
+            if self.can_afford(AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK) and self.tech_requirement_progress(AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK) == 1:
+                print("I can afford Stimpack and I have the tech requirement met")
+                if self.structures(UnitTypeId.BARRACKSTECHLAB):
+                    for techlab in self.structures(UnitTypeId.BARRACKSTECHLAB).ready:
+                        if techlab(AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK):
+                            skipme = False
+                            return True
+    
     #if self.supply_used < supplyRequired-1:
         #print(f"Cannot build, current supply: {self.supply_used}")
         #return False
 
     #if ((self.calculate_cost(UnitTypeId[unit_name]).minerals) - self.minerals) > -35 and unitType == 'structure' and unit_name != 'REFINERY':
         #worker.move(self, self.barracks_pp) #pre-move our SCVs to shorten build time
-
-    if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
-        #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
-        if unitType == 'structure':
-            if unit_name == 'REFINERY':
-                #pass to CC_Manager vgs
-                if await buildGas(self, vgs):
+    #Really bad coding practice here:
+    if skipme == False:
+        if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
+            #print(self.tech_requirement_progress(UnitTypeId[unit_name]))
+            if unitType == 'structure':
+                if unit_name == 'REFINERY':
+                    #pass to CC_Manager vgs
+                    if await buildGas(self, vgs):
+                        return True
+                elif unit_name == 'ORBITALCOMMAND':
+                    #TODO #5 Need to move this code to ccManager after we get it working in this area
+                    if await upgradeCC(self, unit_name):
+                        return True #this will allow the step to increase
+                else:
+                    await build_structure(self, unit_name) #building placement logic missing
                     return True
-            elif unit_name == 'ORBITALCOMMAND':
-                #TODO #5 Need to move this code to ccManager after we get it working in this area
-                if await upgradeCC(self, unit_name):
-                    return True #this will allow the step to increase
-            else:
-                await build_structure(self, unit_name) #building placement logic missing
+            elif unitType == 'unit':
+                #send to armyManager
+                #await train_unit(self, unit_name)
                 return True
-        elif unitType == 'unit':
-            #send to armyManager
-            await train_unit(self, unit_name)
-            return True
-        elif unitType == 'worker':
-            #send to worker_pool and training order to CC_Manager
-            worker_pool =+ 1 
-            await trainSCV(self, unit_name)
-            return True
+            elif unitType == 'worker':
+                #send to worker_pool and training order to CC_Manager
+                worker_pool =+ 1 
+                await trainSCV(self, unit_name)
+                return True
 
 def main():
     # run_game(
@@ -142,8 +157,9 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
+    
 
 if __name__ == "__main__":
     main()

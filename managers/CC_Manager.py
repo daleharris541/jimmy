@@ -14,26 +14,25 @@ async def ccHealthCheck(self: BotAI):
     pass
 
 async def trainSCV(self: BotAI, unit_name):
-    #TODO #7 When command center is upgraded to Orbital command, this no longer works
-    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    
     cc : Unit = self.townhalls.first
     if self.can_afford(UnitTypeId[unit_name]):
         cc.train(UnitTypeId[unit_name])
 
 async def getIdleSCVS(self: BotAI):
-    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     cc : Unit = self.townhalls.first
     for scv in self.workers.idle:
             scv.gather(self.mineral_field.closest_to(cc))
 
 async def call_down_mule(self: BotAI):
-        """This function calls down a MULE to the nearest mineral field."""
-        if self.bot.minerals > 300:
-            closest_mineral_field = self.state.mineral_field.closest_to(self.townhall)
-            await self.bot.do(self.townhall(AbilityId.CALLDOWNMULE_CALLDOWNMULE, closest_mineral_field))
+    """This function calls down a MULE to the nearest mineral field."""
+    #TODO #9 Get this working
+    if self.bot.minerals > 300:
+        closest_mineral_field = self.state.mineral_field.closest_to(self.townhall)
+        await self.do((self.townhalls(UnitTypeId.ORBITALCOMMAND))(AbilityId.CALLDOWNMULE_CALLDOWNMULE, closest_mineral_field))
 
 async def getVespenes(self: BotAI):
-    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
+    """This function gets all vespene geysers."""
     cc : Unit = self.townhalls.first
     vgs: Units = self.vespene_geyser.closer_than(20, cc)
     #loc_vespene = []

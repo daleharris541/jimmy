@@ -90,11 +90,44 @@ async def build_structure(self : BotAI, unit_name):
     cc : Unit = self.townhalls.first
     #TODO #8 Reactor doesn't work - may break everything
     if unit_name == 'BARRACKSREACTOR':
-        for barracks in self.structures(UnitTypeId.BARRACKS).ready.idle:
-            if barracks.train(AbilityId.BUILD_REACTOR_BARRACKS):
-                return True
+        print("**********")
+        print("I have a barracks reactor to build!")
+        print("**********")
+        for barrack in self.structures(UnitTypeId.BARRACKS).ready.idle:
+            print("I have an idle barracks!")
+            if not barrack.has_add_on and barrack.add_on_position:
+                print("I have a barracks without an addon")
+                if barrack(AbilityId.BUILD_REACTOR_BARRACKS):
+                    return True
+            else:
+                return False
+        return False
+    if unit_name == 'BARRACKSTECHLAB':
+        print("**********")
+        print("I have a barracks tech lab to build!")
+        print("**********")
+        for barrack in self.structures(UnitTypeId.BARRACKS).ready.idle:
+            print("I have an idle barracks!")
+            if not barrack.has_add_on and barrack.add_on_position:
+                print("I have a barracks without an addon")
+                if barrack(AbilityId.BUILD_TECHLAB_BARRACKS):
+                    return True
+            else:
+                return False
+        return False
+    # if unit_name == 'BARRACKSTECHLABRESEARCH_STIMPACK':
+    #     if self.structures(UnitTypeId.TECHLAB):
+    #         for techlab in self.structures(UnitTypeId.TECHLAB).ready.idle:
+    #             if techlab(AbilityId.BARRACKSTECHLABRESEARCH_STIMPACK):
+    #                 return True
+    #     else:
+    #         print("No tech lab, so skipping Stimpack")
+    #         return True
     else:
-        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 8)) #building placement logic missing
+        if unit_name == "SUPPLYDEPOT":
+            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5)) #building placement logic missing
+        else:
+            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12)) #building placement logic missing
 
 def get_build_order(self : BotAI, strategy):
     """
