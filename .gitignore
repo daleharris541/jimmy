@@ -6,4 +6,6 @@ strategies/__pycache__
 tools/__pycache__
 *.log
 jimmyalterego/
-new_CC_Manager/
+
+# Misc
+.DS_Store
