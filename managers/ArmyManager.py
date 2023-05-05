@@ -4,7 +4,7 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 units_barracks = ['MARINE', 'REAPER', 'MARAUDER', 'GHOST']
-units_factory = ['HELLION ', 'WIDOWMINE', 'CYCLONE', 'SIEGETANK']
+units_factory = ['HELLION', 'WIDOWMINE', 'CYCLONE', 'SIEGETANK']
 units_starport = ['VIKING', 'MEDICAC', 'LIBERATOR', 'RAVEN', 'BANSHEE', 'BATTLECRUISER']
 
 async def train_unit(self: BotAI, unit_name):

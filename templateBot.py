@@ -9,7 +9,7 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 from loguru import logger
-from managers.BuildManager import get_build_order, compare_dicts, build_structure
+from managers.BuildManager import get_build_order, compare_dicts, build_structure, build_addon
 from managers.ArmyManager import train_unit
 from managers.CC_Manager import CC_Manager
 from managers.UpgradeManager import research_upgrade
@@ -78,6 +78,9 @@ class Jimmy(BotAI):
                 #TODO: keep this code until the check against the current buildings is finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
+                    buildOrderPercentage = 100 * ((self.buildstep)/(len(self.build_order)))
+                    print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)-self.buildstep}")
+                    print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
                 #send to check against build order step
 
         #await compare_dicts(self, self.build_order, self.buildstep) #debug
@@ -113,6 +116,8 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
             elif unit_name == 'ORBITALCOMMAND':
                 cc_managers[0].upgrade_orbital_command()
                 return True
+            elif unit_name.contains("TECHLAB") or unit_name.contains("REACTOR"):
+                await build_addon(self, unit_name) #this only applies to addons
             else:
                 await build_structure(self, unit_name) #building placement logic missing
                 return True

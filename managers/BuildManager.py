@@ -79,15 +79,64 @@ async def compare_dicts(self: BotAI, build_order, buildstep):
             print(f"FALSE: {current_structures} and {expected_structures} not matching")
 
     #TODO Find out why some checks fail (ingame list faster updated then build order)
-
+    
     #print(f"Ingame: {current_structures} | BuildOrder: {expected_structures}")
     pass
 
 #construction order
 async def build_structure(self : BotAI, unit_name):
+    """
+    This function builds various structures based on build order
+    It returns True/False to identify whether it executed or not
+    This allows multiple attempts to build without skipping
+    """
     #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     cc : Unit = self.townhalls.first
     #TODO #8 Reactor doesn't work - may break everything
+
+    if unit_name == "SUPPLYDEPOT":
+        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5)) 
+    else:
+        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12)) 
+    
+def get_build_order(self : BotAI, strategy):
+    """
+    The build order is a json file you must parse.
+    It returns a list of items matching the json keys.
+    """
+    build_order = None
+    build_order = makeBuildOrder('strategies/' + strategy + '.json')
+    if build_order is not None:
+        return build_order
+    else:
+        return False
+
+async def build_addon(self : BotAI, unit_name):
+    """
+    Function to properly assign the buildings to which is being assigned
+    To build the addon since SCVs do not build it
+    It returns True/False to identify whether it executed or not
+    """
+
+
+    
+
+    if unit_name.contains("BARRACKS"):
+        for barrack in self.structures(UnitTypeId[barrack[0]]).ready.idle
+        .... (AbilityId.barrack[1])
+    
+    #Total Options: FactoryReactor, BarracksReactor, 
+    # barracks = ['BARRACKSREACTOR', 'BARRACKSTECHLAB']
+    # factory = ['FACTORYREACTOR', 'FACTORYTECHLAB']
+    # starport = ['STARPORTREACTOR', 'STARPORTTECHLAB']
+    if unit_name.contains("FACTORY"):buildingtype = 'FACTORY'
+    if unit_name.contains("STARPORT"):buildingtype = 'STARPORT'
+    buildingtype = unit_name.split("_")[2]
+    actionname, addontype ,buildingtype = unit_name.split("_")
+    addontype = unit_name.split("_")
+    for buildingtype in self.structures(UnitTypeId[buildingtype]).ready.idle:
+        print("stop giving me errors")
+    cc : Unit = self.townhalls.first
     if unit_name == 'BARRACKSREACTOR':
         for barrack in self.structures(UnitTypeId.BARRACKS).ready.idle:
             if not barrack.has_add_on and barrack.add_on_position:
@@ -103,21 +152,8 @@ async def build_structure(self : BotAI, unit_name):
                     return True
             else:
                 return False
-        
-    else:
-        if unit_name == "SUPPLYDEPOT":
-            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5)) 
-        else:
-            await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12)) 
 
-def get_build_order(self : BotAI, strategy):
-    """
-    The build order is a json file you must parse.
-    It returns a list of items matching the json keys.
-    """
-    build_order = None
-    build_order = makeBuildOrder('strategies/' + strategy + '.json')
-    if build_order is not None:
-        return build_order
-    else:
-        return False
+async def build_reactor(self : BotAI, unit_name):
+    barrack = ["BARRACKS", "BUILD_REACTOR_BARRCKS"]
+    factory = ["FACTORY", "BUILD_REACTOR_FACTORY"]
+    starport = ["STARPORT", "BUILD_REACTOR_STARPORT"]
