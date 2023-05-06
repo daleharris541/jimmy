@@ -20,12 +20,12 @@ class CC_Manager:
         self.workers = self.get_workers()
         ### BEHAVIOR ###
         #await self.train_worker(worker_pool)
-        await self.get_idle_worker()    #LOGIC: Only execute if CC is on expansion location
-        if self.bot.tech_requirement_progress(UnitTypeId.ORBITALCOMMAND) == 1:
-            self.upgrade_orbital_command()
+        #await self.get_idle_worker()    #LOGIC: Only execute if CC is on expansion location
+        #if self.bot.tech_requirement_progress(UnitTypeId.ORBITALCOMMAND) == 1:
+        #    self.upgrade_orbital_command()
 
-        if self.cc.name == 'OrbitalCommand':
-            self.call_down_mule()
+        #if self.cc.name == 'OrbitalCommand' and self.cc.position in self.bot.expansion_locations:
+        #    self.call_down_mule()
 
 
     async def train_worker(self, worker_pool):
@@ -37,7 +37,6 @@ class CC_Manager:
         """This function collects all idle workers"""
         workers = [scv for scv in self.workers if scv.is_idle and self.cc.distance_to(scv) <= self.sphere_of_influence]
         for worker in workers:
-            #[mineral for mineral in self.minerals.closest_to(worker)]
             mineral = self.bot.mineral_field.closest_to(worker)
             worker.gather(mineral)
 
@@ -99,10 +98,10 @@ class CC_Manager:
             else:
                 return False
             
-    #async def saturateGas(self: BotAI):
-    #    refineries = self.gas_buildings
-    #    if refineries:
-    #        refinery = refineries.random
-    #        workers = self.workers.random_group_of(2)
-    #        for worker in workers:
-    #            worker.gather(refinery)
+    async def saturateGas(self):
+        refineries = self.bot.gas_buildings.ready
+        if refineries:
+            refinery = refineries.random
+            workers = self.workers.random_group_of(2)
+            for worker in workers:
+                worker.gather(refinery)

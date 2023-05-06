@@ -90,7 +90,6 @@ async def build_structure(self : BotAI, unit_name):
     It returns True/False to identify whether it executed or not
     This allows multiple attempts to build without skipping
     """
-    #cc: Unit = self.townhalls(UnitTypeId.COMMANDCENTER).first
     cc : Unit = self.townhalls.first
     #TODO #8 Reactor doesn't work - may break everything
 
@@ -117,18 +116,35 @@ async def build_addon(self : BotAI, unit_name):
     To build the addon since SCVs do not build it
     It returns True/False to identify whether it executed or not
     """
-
     abilityID = ''
-    if unit_name[0] == 'B' and unit_name[-1] == 'R': abilityID = "BUILD_REACTOR_BARRACKS"
-    elif unit_name[0] == 'B' and unit_name[-1] == 'B': abilityID = "BUILD_TECHLAB_BARRACKS"
-    elif unit_name[0] == 'F' and unit_name[-1] == 'R': abilityID = "BUILD_REACTOR_FACTORY"
-    elif unit_name[0] == 'F' and unit_name[-1] == 'B': abilityID = "BUILD_TECHLAB_FACTORY"
-    elif unit_name[0] == 'S' and unit_name[-1] == 'R': abilityID = "BUILD_REACTOR_STARPORT"
-    elif unit_name[0] == 'S' and unit_name[-1] == 'B': abilityID = "BUILD_TECHLAB_STARPORT"
+    if unit_name[:7] == 'BARRACK':
+        if unit_name[-7:] == 'TECHLAB':
+            abilityID = 'BUILD_TECHLAB_BARRACKS'
+        elif unit_name[-7:] == 'REACTOR':
+            abilityID = 'BUILD_REACTOR_BARRACKS'
+        else:
+            return False
+    elif unit_name[:7] == 'FACTORY':
+        if unit_name[-7:] == 'REACTOR':
+            abilityID = "BUILD_REACTOR_FACTORY"
+        elif unit_name[-7:] == 'TECHLAB':
+            abilityID = "BUILD_TECHLAB_FACTORY"
+        else:
+            return False
+    elif unit_name[:7] == 'FACTORY':
+        if unit_name[-7:] == 'REACTOR':
+            abilityID = "BUILD_REACTOR_STARPORT"
+        elif unit_name[-7:] == 'TECHLAB':
+            abilityID = "BUILD_TECHLAB_STARPORT"
+        else:
+            return False
+
+    #print(f"First 7: {unit_name[:7]} | Last 7 {unit_name[-7:]}")
+
     buildingType = abilityID.split("_")[2]
     for building in self.structures(UnitTypeId[buildingType]).ready.idle:
         if not building.has_add_on and building.add_on_position:
             if building(AbilityId[abilityID]):
                 return True
-        else:
-            return False
+            else:
+                return False

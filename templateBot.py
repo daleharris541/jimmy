@@ -13,6 +13,7 @@ from managers.BuildManager import get_build_order, compare_dicts, build_structur
 from managers.ArmyManager import train_unit
 from managers.CC_Manager import CC_Manager
 from managers.UpgradeManager import research_upgrade
+from managers.ControlHelper import idle_workers
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
@@ -71,16 +72,17 @@ class Jimmy(BotAI):
         for cc_manager in self.cc_managers:
             await cc_manager.manage_cc(self.worker_pool)
 
-        await self.cc_managers[0].train_worker(self.worker_pool)
+        await idle_workers(self)
         
         if self.buildstep != len(self.build_order):
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
                 if self.buildstep < (len(self.build_order)):
                     self.buildstep = self.buildstep + 1
-                    buildOrderPercentage = 100 * ((self.buildstep)/(len(self.build_order)))
-                    print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)-self.buildstep}")
-                    print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
+                    if self.debug:
+                        buildOrderPercentage = 100 * ((self.buildstep)/(len(self.build_order)))
+                        print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)-self.buildstep}")
+                        print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
                 #send to check against build order step
 
         #await compare_dicts(self, self.build_order, self.buildstep) #debug
@@ -117,7 +119,8 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
                 cc_managers[0].upgrade_orbital_command()
                 return True
             elif "TECHLAB" in unit_name or "REACTOR" in unit_name:
-                await build_addon(self, unit_name) #this only applies to addons
+                if await build_addon(self, unit_name): #this only applies to addons
+                    return True
             else:
                 await build_structure(self, unit_name) #building placement logic missing
                 return True
@@ -132,7 +135,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
     
 if __name__ == "__main__":
