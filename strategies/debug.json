@@ -1,0 +1,82 @@
+[
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 12,
+        "time": "00:00",
+        "frame": 0
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 13,
+        "time": "00:15",
+        "frame": 337
+    },
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 13,
+        "time": "00:18",
+        "frame": 407
+    },
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 14,
+        "time": "00:30",
+        "frame": 679
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 15,
+        "time": "00:37",
+        "frame": 840
+    },
+    {
+        "name": "CommandCenter",
+        "id": 18,
+        "type": "structure",
+        "supply": 15,
+        "time": "01:05",
+        "frame": 1459
+    },
+    {
+        "name": "CommandCenter",
+        "id": 18,
+        "type": "structure",
+        "supply": 15,
+        "time": "01:35",
+        "frame": 2142
+    },
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 15,
+        "time": "01:38",
+        "frame": 2206
+    },
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 16,
+        "time": "01:50",
+        "frame": 2478
+    },
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 17,
+        "time": "02:02",
+        "frame": 2750
+    }
+]
