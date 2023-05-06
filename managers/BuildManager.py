@@ -94,9 +94,11 @@ async def build_structure(self : BotAI, unit_name):
     #TODO #8 Reactor doesn't work - may break everything
 
     if unit_name == "SUPPLYDEPOT":
-        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5)) 
+        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5))
+        return True
     else:
-        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12)) 
+        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12))
+        return True
     
 def get_build_order(self : BotAI, strategy):
     """

@@ -109,6 +109,8 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
     elif unitType == 'upgrade':
         await research_upgrade(self, unit_name)
         return True
+    #elif unitType == 'unit':
+    #    return True
 
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         if unitType == 'structure':
@@ -119,11 +121,11 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
                 cc_managers[0].upgrade_orbital_command()
                 return True
             elif "TECHLAB" in unit_name or "REACTOR" in unit_name:
-                if await build_addon(self, unit_name): #this only applies to addons
+                if await build_addon(self, unit_name):
                     return True
             else:
-                await build_structure(self, unit_name) #building placement logic missing
-                return True
+                if await build_structure(self, unit_name): #building placement logic missing
+                    return True
         elif unitType == 'unit':
             #skip unit training
             return True

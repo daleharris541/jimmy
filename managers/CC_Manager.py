@@ -10,23 +10,21 @@ class CC_Manager:
         self.bot = bot
         self.townhall = townhall
         self.sphere_of_influence = 10
-        self.minerals = self.get_mineral_fields() #move to dynamic update
-        self.vespene = self.get_vespene_geysers() #move to dynamic update
 
     async def manage_cc(self, worker_pool):
         """The main function of the CC_Manager that manages the Command Center."""
         ### UPDATE VARIABLES ###
         self.cc = self.bot.structures.find_by_tag(self.townhall.tag)
         self.workers = self.get_workers()
+        self.minerals = self.get_mineral_fields()
+        self.vespene = self.get_vespene_geysers()
         ### BEHAVIOR ###
+        if self.cc.name == 'OrbitalCommand' and self.cc.position in self.bot.expansion_locations_list:
+            self.call_down_mule()
         #await self.train_worker(worker_pool)
         #await self.get_idle_worker()    #LOGIC: Only execute if CC is on expansion location
         #if self.bot.tech_requirement_progress(UnitTypeId.ORBITALCOMMAND) == 1:
         #    self.upgrade_orbital_command()
-
-        #if self.cc.name == 'OrbitalCommand' and self.cc.position in self.bot.expansion_locations:
-        #    self.call_down_mule()
-
 
     async def train_worker(self, worker_pool):
         """This function builds workers"""
@@ -86,7 +84,7 @@ class CC_Manager:
         """This function returns the vespene geysers close to the Command Center."""
         controlled_vespene_geysers = Units([], self)
         for vespene_geyser in self.bot.vespene_geyser:
-            if self.townhall.distance_to(vespene_geyser) < self.sphere_of_influence:
+            if self.cc.distance_to(vespene_geyser) < self.sphere_of_influence:
                 controlled_vespene_geysers.append(vespene_geyser)
         return controlled_vespene_geysers
     
