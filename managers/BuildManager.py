@@ -118,42 +118,17 @@ async def build_addon(self : BotAI, unit_name):
     It returns True/False to identify whether it executed or not
     """
 
-
-    
-
-    if unit_name.contains("BARRACKS"):
-        for barrack in self.structures(UnitTypeId[barrack[0]]).ready.idle
-        .... (AbilityId.barrack[1])
-    
-    #Total Options: FactoryReactor, BarracksReactor, 
-    # barracks = ['BARRACKSREACTOR', 'BARRACKSTECHLAB']
-    # factory = ['FACTORYREACTOR', 'FACTORYTECHLAB']
-    # starport = ['STARPORTREACTOR', 'STARPORTTECHLAB']
-    if unit_name.contains("FACTORY"):buildingtype = 'FACTORY'
-    if unit_name.contains("STARPORT"):buildingtype = 'STARPORT'
-    buildingtype = unit_name.split("_")[2]
-    actionname, addontype ,buildingtype = unit_name.split("_")
-    addontype = unit_name.split("_")
-    for buildingtype in self.structures(UnitTypeId[buildingtype]).ready.idle:
-        print("stop giving me errors")
-    cc : Unit = self.townhalls.first
-    if unit_name == 'BARRACKSREACTOR':
-        for barrack in self.structures(UnitTypeId.BARRACKS).ready.idle:
-            if not barrack.has_add_on and barrack.add_on_position:
-                if barrack(AbilityId.BUILD_REACTOR_BARRACKS):
-                    return True
-            else:
-                return False
-        
-    if unit_name == 'BARRACKSTECHLAB':
-        for barrack in self.structures(UnitTypeId.BARRACKS).ready.idle:
-            if not barrack.has_add_on and barrack.add_on_position:
-                if barrack(AbilityId.BUILD_TECHLAB_BARRACKS):
-                    return True
-            else:
-                return False
-
-async def build_reactor(self : BotAI, unit_name):
-    barrack = ["BARRACKS", "BUILD_REACTOR_BARRCKS"]
-    factory = ["FACTORY", "BUILD_REACTOR_FACTORY"]
-    starport = ["STARPORT", "BUILD_REACTOR_STARPORT"]
+    abilityID = ''
+    if unit_name[0] == 'B' and unit_name[-1] == 'R': abilityID = "BUILD_REACTOR_BARRACKS"
+    if unit_name[0] == 'B' and unit_name[-1] == 'B': abilityID = "BUILD_TECHLAB_BARRACKS"
+    if unit_name[0] == 'F' and unit_name[-1] == 'R': abilityID = "BUILD_REACTOR_FACTORY"
+    if unit_name[0] == 'F' and unit_name[-1] == 'B': abilityID = "BUILD_TECHLAB_FACTORY"
+    if unit_name[0] == 'S' and unit_name[-1] == 'R': abilityID = "BUILD_REACTOR_STARPORT"
+    if unit_name[0] == 'S' and unit_name[-1] == 'B': abilityID = "BUILD_TECHLAB_STARPORT"
+    buildingType = abilityID.split("_")[2]
+    for building in self.structures(UnitTypeId[buildingType]).ready.idle:
+        if not building.has_add_on and building.add_on_position:
+            if building(AbilityId[abilityID]):
+                return True
+        else:
+            return False

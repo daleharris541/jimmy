@@ -116,7 +116,7 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
             elif unit_name == 'ORBITALCOMMAND':
                 cc_managers[0].upgrade_orbital_command()
                 return True
-            elif unit_name.contains("TECHLAB") or unit_name.contains("REACTOR"):
+            elif "TECHLAB" in unit_name or "REACTOR" in unit_name:
                 await build_addon(self, unit_name) #this only applies to addons
             else:
                 await build_structure(self, unit_name) #building placement logic missing
