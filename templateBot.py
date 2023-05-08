@@ -42,15 +42,12 @@ class Jimmy(BotAI):
         self.cc_managers = []
         self.build_order_progress = 0
 
-        self.build_order = get_build_order(self,'16marinedrop-example')    #BuildManager(self)
+        self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
         self.debug = True
 
     async def on_start(self):
         #print("Game started")
-        # Do things here before the game starts
-        self.CCs: Units = self.townhalls(UnitTypeId.COMMANDCENTER)
-        self.cc: Unit = self.CCs.first
-        #Load build manager once and print once
+        #Load build manager once and print once##
         if self.build_order.count != 0:
             print("successfully loaded build order:")
             print(self.build_order)
@@ -71,7 +68,10 @@ class Jimmy(BotAI):
 
         # Call the manage_cc function for each CC_Manager instance
         for cc_manager in self.cc_managers:
-            await cc_manager.manage_cc(self.worker_pool)
+            if cc_manager.townhall.tag not in self.townhalls.tags:
+                self.cc_managers.remove(cc_manager)
+            else:
+                await cc_manager.manage_cc(self.worker_pool)
 
         await idle_workers(self)
         
@@ -143,6 +143,6 @@ def main():
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
         realtime=True,
     )
-    
+
 if __name__ == "__main__":
     main()
