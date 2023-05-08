@@ -41,6 +41,7 @@ class Jimmy(BotAI):
         self.worker_pool = 12
         self.cc_managers = []
         self.build_order_progress = 0
+        self.build_order_count = 0
 
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
         self.debug = True
@@ -54,8 +55,6 @@ class Jimmy(BotAI):
         else:
             print("Build order failed to load")
         self.build_order_count = len(self.build_order)
-        self.vgs: Units = self.vespene_geyser.closer_than(20, self.cc)
-        #self.barracks_pp: Point2 = self.main_base_ramp.barracks_correct_placement
         
     async def on_step(self, iteration: int):
         # Find all Command Centers
