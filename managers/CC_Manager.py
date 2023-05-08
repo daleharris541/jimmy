@@ -9,7 +9,7 @@ class CC_Manager:
     def __init__(self, bot: BotAI, townhall: Unit):
         self.bot = bot
         self.townhall = townhall
-        self.sphere_of_influence = 10
+        self.sphere_of_influence = 20
 
     async def manage_cc(self, worker_pool):
         """The main function of the CC_Manager that manages the Command Center."""
@@ -31,10 +31,16 @@ class CC_Manager:
         if len(self.bot.workers) < worker_pool and len(self.workers) < 22 and self.cc.is_idle and self.bot.can_afford(UnitTypeId.SCV):
             self.cc.train(UnitTypeId.SCV)
 
-    async def get_idle_worker(self):
+    async def get_idle_worker(self : BotAI):
         """This function collects all idle workers"""
         workers = [scv for scv in self.workers if scv.is_idle and self.cc.distance_to(scv) <= self.sphere_of_influence]
+        #get all refineries, check to see if 3 are harvesting
+        #for building in self.structures(UnitTypeId[buildingType]).ready.idle:
         for worker in workers:
+            for refinery in self.structures(UnitTypeId.REFINERY):
+                print(f"I have {len(self.refineries)} refineries in my list")
+                if refinery.assigned_harvesters < refinery.ideal_harvesters:\
+                    worker.gather(refinery)
             mineral = self.bot.mineral_field.closest_to(worker)
             worker.gather(mineral)
 
@@ -60,10 +66,10 @@ class CC_Manager:
             closest_mineral_field = self.bot.mineral_field.closest_to(self.cc)
             self.cc(AbilityId.CALLDOWNMULE_CALLDOWNMULE, closest_mineral_field)
 
-    def scanner_sweep(self, postion):
+    def scanner_sweep(self, position):
         """This function calls down a MULE to the nearest mineral field."""
         if self.cc.energy > 50:
-            self.cc(AbilityId.SCANNERSWEEP_SCAN, postion)
+            self.cc(AbilityId.SCANNERSWEEP_SCAN, position)
 
     def get_workers(self):
         controlled_worker = Units([], self)
