@@ -46,7 +46,7 @@ class Jimmy(BotAI):
 
     async def on_start(self):
         #print("Game started")
-        #Load build manager once and print once
+        #Load build manager once and print once##
         if self.build_order.count != 0:
             print("successfully loaded build order:")
             print(self.build_order)
