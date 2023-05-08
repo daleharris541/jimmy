@@ -75,6 +75,7 @@ class Jimmy(BotAI):
         await idle_workers(self)
         
         if len(self.build_order) > 0:
+        if len(self.build_order) > 0:
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
                 self.build_order.pop(self.buildstep) #remove item from the list once it's done
@@ -82,7 +83,15 @@ class Jimmy(BotAI):
                 if self.debug:
                         buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
                         print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
+                self.build_order.pop(self.buildstep) #remove item from the list once it's done
+                self.build_order_progress = (self.build_order_count-len(self.build_order))
+                if self.debug:
+                        buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
+                        print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
                         print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
+                #if self.buildstep < (len(self.build_order)):
+                    #self.buildstep = self.buildstep + 1
+                    
                 #if self.buildstep < (len(self.build_order)):
                     #self.buildstep = self.buildstep + 1
                     
@@ -140,7 +149,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":
