@@ -115,7 +115,7 @@ def get_build_order(self : BotAI, strategy):
 async def build_addon(self : BotAI, unit_name):
     """
     Function to properly assign the buildings to which is being assigned
-    To build the addon since SCVs do not build it
+    to build the addon since SCVs do not build it
     It returns True/False to identify whether it executed or not
     """
     abilityID = ''
@@ -124,24 +124,18 @@ async def build_addon(self : BotAI, unit_name):
             abilityID = 'BUILD_TECHLAB_BARRACKS'
         elif unit_name[-7:] == 'REACTOR':
             abilityID = 'BUILD_REACTOR_BARRACKS'
-        else:
-            return False
+
     elif unit_name[:7] == 'FACTORY':
         if unit_name[-7:] == 'REACTOR':
             abilityID = "BUILD_REACTOR_FACTORY"
         elif unit_name[-7:] == 'TECHLAB':
             abilityID = "BUILD_TECHLAB_FACTORY"
-        else:
-            return False
-    elif unit_name[:7] == 'FACTORY':
+
+    elif unit_name[:8] == 'STARPORT':
         if unit_name[-7:] == 'REACTOR':
             abilityID = "BUILD_REACTOR_STARPORT"
         elif unit_name[-7:] == 'TECHLAB':
             abilityID = "BUILD_TECHLAB_STARPORT"
-        else:
-            return False
-
-    #print(f"First 7: {unit_name[:7]} | Last 7 {unit_name[-7:]}")
 
     buildingType = abilityID.split("_")[2]
     for building in self.structures(UnitTypeId[buildingType]).ready.idle:

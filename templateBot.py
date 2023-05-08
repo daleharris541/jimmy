@@ -40,6 +40,7 @@ class Jimmy(BotAI):
         self.buildstep = 0
         self.worker_pool = 12
         self.cc_managers = []
+        self.build_order_progress = 0
 
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
         self.debug = True
@@ -71,15 +72,18 @@ class Jimmy(BotAI):
 
         await idle_workers(self)
         
-        if self.buildstep != len(self.build_order):
+        if len(self.build_order) > 0:
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
-                if self.buildstep < (len(self.build_order)):
-                    self.buildstep = self.buildstep + 1
-                    if self.debug:
-                        buildOrderPercentage = 100 * ((self.buildstep)/(len(self.build_order)))
-                        print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)-self.buildstep}")
+                self.build_order.pop(self.buildstep) #remove item from the list once it's done
+                self.build_order_progress = (self.build_order_count-len(self.build_order))
+                if self.debug:
+                        buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
+                        print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
                         print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
+                #if self.buildstep < (len(self.build_order)):
+                    #self.buildstep = self.buildstep + 1
+                    
                 #send to check against build order step
 
         #await compare_dicts(self, self.build_order, self.buildstep) #debug
@@ -134,7 +138,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":

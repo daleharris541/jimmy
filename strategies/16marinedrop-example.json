@@ -24,20 +24,20 @@
         "frame": 423
     },
     {
-        "name": "SCV",
-        "id": 45,
-        "type": "worker",
-        "supply": 14,
-        "time": "00:24",
-        "frame": 544
-    },
-    {
         "name": "Barracks",
         "id": 21,
         "type": "structure",
         "supply": 16,
         "time": "00:41",
         "frame": 926
+    },
+    {
+        "name": "SCV",
+        "id": 45,
+        "type": "worker",
+        "supply": 14,
+        "time": "00:24",
+        "frame": 544
     },
     {
         "name": "SCV",
