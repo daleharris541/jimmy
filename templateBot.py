@@ -75,7 +75,6 @@ class Jimmy(BotAI):
         await idle_workers(self)
         
         if len(self.build_order) > 0:
-        if len(self.build_order) > 0:
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
                 self.build_order.pop(self.buildstep) #remove item from the list once it's done
