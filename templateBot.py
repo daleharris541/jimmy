@@ -47,7 +47,7 @@ class Jimmy(BotAI):
         self.supply_depot_placement_list: Set[Point2] = []
         self.tech_buildings_placement_list: Set[Point2] = []
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
-        self.debug = True
+        self.debug = False
 
     async def on_start(self):
         #print("Game started")
