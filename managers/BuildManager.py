@@ -97,7 +97,7 @@ async def build_structure(self : BotAI, unit_name):
 
     #first two supply depots will be built on ramp, the rest on our planned layout
     if unit_name == "SUPPLYDEPOT":
-        if self.structures(UnitTypeId.SUPPLYDEPOT) < 3:
+        if self.structures(UnitTypeId.SUPPLYDEPOT).amount < 3:
             position = build_on_ramp(self, unit_name)
             await self.build(UnitTypeId[unit_name], position)
         else:
@@ -168,7 +168,7 @@ def build_on_ramp(self : BotAI, unit_name):
     Attempting to properly place supply depots and a barracks on ramp
     """
     if unit_name == "SUPPLYDEPOT":
-        if self.structures(UnitTypeId.SUPPLYDEPOT) < 3 and self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
+        if self.structures(UnitTypeId.SUPPLYDEPOT).amount < 3 and self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
             depot_placement_positions: FrozenSet[Point2] = self.main_base_ramp.corner_depots
             depots: Units = self.structures.of_type({UnitTypeId.SUPPLYDEPOT, UnitTypeId.SUPPLYDEPOTLOWERED})
             if depots:

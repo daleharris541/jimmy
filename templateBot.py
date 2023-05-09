@@ -1,3 +1,4 @@
+import random
 from sc2 import maps
 from sc2.bot_ai import BotAI
 from sc2.data import Difficulty, Race
@@ -5,10 +6,10 @@ from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.main import run_game
 from sc2.player import Bot, Computer
-from sc2.position import Point2, Pointlike
+from sc2.position import Point2, Point3
 from sc2.unit import Unit
 from sc2.units import Units
-from typing import FrozenSet
+from typing import FrozenSet, Set
 from loguru import logger
 from managers.BuildManager import get_build_order, compare_dicts, build_structure, build_addon
 from managers.ArmyManager import train_unit
@@ -20,7 +21,7 @@ from managers.ControlHelper import idle_workers
 
 class Jimmy(BotAI):
     
-    #following code from bot.py from smoothbrain bot as example
+    #following variables from bot.py from smoothbrain bot as example
     def __init__(self):
         self.unit_command_uses_self_do = False
         self.distance_calculation_method = 2
@@ -43,8 +44,8 @@ class Jimmy(BotAI):
         self.cc_managers = []
         self.build_order_progress = 0
         self.build_order_count = 0
-        self.supply_depot_placement_list = []
-        self.tech_buildings_placement_list = []
+        self.supply_depot_placement_list: Set[Point2] = []
+        self.tech_buildings_placement_list: Set[Point2] = []
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
         self.debug = True
 
@@ -58,11 +59,14 @@ class Jimmy(BotAI):
             print("Build order failed to load")
         self.build_order_count = len(self.build_order)
         print(f"Ramp = {self.main_base_ramp}")
-        print(f"Start Location = {self.start_location.y}")
-        print(f"Enemy Location = {self.enemy_start_locations[0].y}")
-        self.supply_depot_placement_list = calc_supply_depot_zones(self)
-        self.tech_buildings_placement_list = calc_tech_building_zones(self)
-        print(self.supply_depot_placement_list)
+        print(f"Start Location = {self.start_location}")
+        print(f"Enemy Location = {self.enemy_start_locations[0]}")
+        self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
+        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self)
+        self.draw_building_points()
+        self.draw_expansions()
+        print(f"Here is the list of supply depot placements: {self.supply_depot_placement_list}")
+        #print(self.supply_depot_placement_list)
 
     async def on_step(self, iteration: int):
         # Find all Command Centers
@@ -81,6 +85,10 @@ class Jimmy(BotAI):
                 await cc_manager.manage_cc(self.worker_pool)
 
         await idle_workers(self)
+
+        if self.debug:
+            self.draw_building_points()
+            self.draw_expansions()
         
         # We want to be able to quickly respond to enemy attack:
 
@@ -122,9 +130,25 @@ class Jimmy(BotAI):
 
         #await compare_dicts(self, self.build_order, self.buildstep) #debug
 
-    async def on_end(self):
-        print("Game ended.")
+    #async def on_end(self):
+        #print("Game ended.")
         # Do things here after the game ends
+    def draw_building_points(self):
+        green = Point3((0, 255, 0))
+        for p in self.supply_depot_placement_list:
+            p = Point2(p)
+            print(f"Point: {p}")
+            h2 = self.get_terrain_z_height(p)
+            pos = Point3((p.x, p.y, h2))
+            self.client.debug_box2_out(pos + Point2((0.5, 0.5)), half_vertex_length=2.5, color=green)
+        #self.client.debug_box2_out((self.start_location,self.get_terrain_z_height(self.start_location)), half_vertex_length=2.5, color=green)
+
+    def draw_expansions(self):
+        green = Point3((0, 255, 0))
+        for expansion_pos in self.expansion_locations_list:
+            height = self.get_terrain_z_height(expansion_pos)
+            expansion_pos3 = Point3((*expansion_pos, height))
+            self.client.debug_box2_out(expansion_pos3, half_vertex_length=2.5, color=green)
 
 #check prerequisites
 async def build_next(self: BotAI, buildrequest, cc_managers):
@@ -175,7 +199,7 @@ def calc_supply_depot_zones(self : BotAI):
     We only do this once on start and use that list
     for all future placement until it's empty
     """
-    supply_depot_placement_list = []
+    supply_depot_placement_list: Set[Point2] = []
 #     24 is max supply depots needed to build with zero CC expansions
         #     TVZ:
 
@@ -202,8 +226,8 @@ def calc_supply_depot_zones(self : BotAI):
     print("I'm getting the set of Supply Depot placement locations")
     #Determine if we are on top or bottom
     #build 5 centered on CC, then match last one and build 5 perpendicular
-    direction_vector = self.townhalls.first.position.direction_vector(self.enemy_start_locations[0])
-    print(f"This is my direction vector {direction_vector}")
+    direction_vector = self.enemy_start_locations[0].direction_vector(self.start_location)
+    print(f"Enemy to Me Vector: {direction_vector}")
     # if self.start_location.y < 70: #140 is top, 0 is bottom
     #     #we are on bottom
     #     if self.start_location.x < 70:
@@ -223,22 +247,28 @@ def calc_supply_depot_zones(self : BotAI):
     #         starting_depot = Point2 (self.start_location.x-10,self.start_location.y-2)
     #     else:
     #         starting_depot = Point2 (self.start_location.x+10,self.start_location.y-2)
-    xdirection = direction_vector.x
-    ydirection = direction_vector.y
+    xdirection = round(direction_vector.x)
+    ydirection = round(direction_vector.y)
+    x = round(self.start_location.x)
+    y = round(self.start_location.y)
     #corner is an important point since it is our Corner that is in between us and enemy location
-    corner = Point2((self.start_location.x+(xdirection*2),self.start_location.y+(ydirection*2)))
+    corner = Point2((x+(xdirection*2),y+(ydirection*2)))
     print(f"Corner coordinate: {corner}")
     supply_depot_placement_list.append(corner)
     #we will now gather 10 more total placement locations, then populate it all into the list
     #supply depots are 2x2 units
     #add 5 supply depots to the list on each side
     for coordx in range(corner.x,corner.x+(10*xdirection),2*xdirection):
-        supply_depot_placement_list.append(coordx,corner.y)
+        temppoint = Point2((coordx,corner.y))
+        supply_depot_placement_list.append(temppoint)
     for coordy in range(corner.y,corner.y+(10*ydirection),2*ydirection):
-        supply_depot_placement_list.append(corner.x,coordy)
+        temppoint = Point2((corner.x,coordy))
+        supply_depot_placement_list.append(temppoint)
+    print(f"This is the point list before drawing: {supply_depot_placement_list}")
     return supply_depot_placement_list
     # self.find_placement()
-    # if not map_area.x <= 
+    # if not map_area.x <=
+
 
 def calc_tech_building_zones(self : BotAI):
     print("I'm getting the set of Tech Buildings placement locations")
@@ -246,9 +276,10 @@ def calc_tech_building_zones(self : BotAI):
     #print(f"This is my direction vector {direction_vector}")
 
 
+
 def main():
     run_game(
-        maps.get("BerlingradAIE"),
+        maps.get("AcropolisLE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
         realtime=True,
     )
