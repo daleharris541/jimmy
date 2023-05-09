@@ -1,3 +1,5 @@
+import datetime
+
 from sc2 import maps
 from sc2.bot_ai import BotAI
 from sc2.data import Difficulty, Race
@@ -82,11 +84,6 @@ class Jimmy(BotAI):
                 if self.debug:
                         buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
                         print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
-                self.build_order.pop(self.buildstep) #remove item from the list once it's done
-                self.build_order_progress = (self.build_order_count-len(self.build_order))
-                if self.debug:
-                        buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
-                        print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
                         print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
                 #if self.buildstep < (len(self.build_order)):
                     #self.buildstep = self.buildstep + 1
@@ -109,8 +106,9 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
     #example for how to read time target and execution:
     #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
     if self.debug:
-        print("Unit Name: SupplyRequired : Supply Used: Target Time - " + str(gametime) + ": Current Minerals")
-        print(unit_name + "          " + str(supplyRequired) + "             " + str(self.supply_used) + "           " + (str(self.time)).split(".")[0] + "        " + str(self.minerals))
+        timer = int(self.time)
+        realtime = datetime.timedelta(seconds=timer)
+        print(f"Name: {unit_name} | Supply Target: {supplyRequired} | Supply Used: {self.supply_used} | BO Target Time: {gametime} | Game Time: {realtime}")
     #logger.info(f"Executing at {self.time} - Step Time = {gametime}")
     #would be cool to subtract the timing of the build based on actual and show ahead or behind
 
@@ -126,11 +124,13 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         if unitType == 'structure':
             if unit_name == 'REFINERY':
-                cc_managers[0].build_refinery()
-                return True
+                if cc_managers[0].build_refinery():
+                    return True
+                else:
+                    return False
             elif unit_name == 'ORBITALCOMMAND':
-                cc_managers[0].upgrade_orbital_command()
-                return True
+                if cc_managers[0].upgrade_orbital_command():
+                    return True
             elif "TECHLAB" in unit_name or "REACTOR" in unit_name:
                 if await build_addon(self, unit_name):
                     return True
