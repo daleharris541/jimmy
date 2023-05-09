@@ -282,28 +282,28 @@ def calc_tech_building_zones(self : BotAI):
     for all future placement until it's empty
     """
     tech_buildings_placement_list: Set[Point2] = []
-    tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement.position)
-    # Determine which side of the CC is furthest from ramp
-    # this is a little different from supply depots - but we can mimick it
-    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp)
-    distance_to_ramp = get_distance(self,self.start_location,self.main_base_ramp)
-    distance_to_ramp = round(distance_to_ramp)
-    xdirection = round(direction_vector.x)
-    ydirection = round(direction_vector.y)
-    x = round(self.start_location.x)
-    y = round(self.start_location.y)
-    #corner is an important point since it is our Corner that is in between us and enemy location
-    #we can always add to the multiplier to increase the offset
-    #corner = Point2((x+(xdirection*10),y+(ydirection*10)))
-    midpoint_to_ramp = Point2((x+((distance_to_ramp/2)*xdirection)),(y+((distance_to_ramp/2)*ydirection)))
-    #tech_buildings_placement_list.append(midpoint_to_ramp)
-    #tech buildings differ,  let's do 3x3 with room for addons
-    #Only stack up with buildings for addon purposes
-    #TODO #21 I need someone to fix this for me
-    for axis_y in range(midpoint_to_ramp.x,midpoint_to_ramp.y+(16*ydirection),4*xdirection):
-        for fivebuildingset in range(midpoint_to_ramp.x+(xdirection*5),midpoint_to_ramp.y+(15*ydirection),3*ydirection):
-            temppoint = Point2((midpoint_to_ramp.x,axis_y))
-            tech_buildings_placement_list.append(temppoint)
+    # tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement.position)
+    # # Determine which side of the CC is furthest from ramp
+    # # this is a little different from supply depots - but we can mimick it
+    # direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp)
+    # distance_to_ramp = get_distance(self,self.start_location,self.main_base_ramp)
+    # distance_to_ramp = round(distance_to_ramp)
+    # xdirection = round(direction_vector.x)
+    # ydirection = round(direction_vector.y)
+    # x = round(self.start_location.x)
+    # y = round(self.start_location.y)
+    # #corner is an important point since it is our Corner that is in between us and enemy location
+    # #we can always add to the multiplier to increase the offset
+    # #corner = Point2((x+(xdirection*10),y+(ydirection*10)))
+    # midpoint_to_ramp = Point2((x+((distance_to_ramp/2)*xdirection)),(y+((distance_to_ramp/2)*ydirection)))
+    # #tech_buildings_placement_list.append(midpoint_to_ramp)
+    # #tech buildings differ,  let's do 3x3 with room for addons
+    # #Only stack up with buildings for addon purposes
+    # #TODO #21 I need someone to fix this for me
+    # for axis_y in range(midpoint_to_ramp.x,midpoint_to_ramp.y+(16*ydirection),4*xdirection):
+    #     for fivebuildingset in range(midpoint_to_ramp.x+(xdirection*5),midpoint_to_ramp.y+(15*ydirection),3*ydirection):
+    #         temppoint = Point2((midpoint_to_ramp.x,axis_y))
+    #         tech_buildings_placement_list.append(temppoint)
     return tech_buildings_placement_list
 
 def get_direction_vector(self, point1 : Point2, point2 : Point2):
