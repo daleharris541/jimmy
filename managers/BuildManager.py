@@ -86,7 +86,7 @@ async def compare_dicts(self: BotAI, build_order, buildstep):
     pass
 
 #construction order
-async def build_structure(self : BotAI, unit_name):
+async def build_structure(self : BotAI, unit_name, supply_depot_next_position):
     """
     This function builds various structures based on build order
     It returns True/False to identify whether it executed or not
@@ -97,22 +97,17 @@ async def build_structure(self : BotAI, unit_name):
 
     #first two supply depots will be built on ramp, the rest on our planned layout
     if unit_name == "SUPPLYDEPOT":
-        if self.structures(UnitTypeId.SUPPLYDEPOT).amount < 3:
-            position = build_on_ramp(self, unit_name)
-            await self.build(UnitTypeId[unit_name], position)
-        else:
-            for x in range(10):
-                # if await self.can_place_single(UnitTypeId.REFINERY,(x,y),True):
-                #     await self.build(UnitTypeId[unit_name], position)
-                #     return True
-                # else:
-                #     #we can no longer place
-                return False
+         if (await self.build(UnitTypeId[unit_name], supply_depot_next_position)):
+            return True
+         else:
+            return False
     elif unit_name == "BARRACKS": #build all buildings (except first barracks) in a different area lined up top to bottom
-        if self.structures(UnitTypeId.BARRACKS).amount + self.already_pending(UnitTypeId.BARRACKS) > 0:
-            position = build_on_ramp(self, unit_name)
+        if self.structures(UnitTypeId.BARRACKS).amount + self.already_pending(UnitTypeId.BARRACKS) == 0:
+            position = self.main_base_ramp.barracks_in_middle
             await self.build(UnitTypeId[unit_name], position)
-        return True
+            return True
+        else:
+            return False
     else:
         await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12))
         return True

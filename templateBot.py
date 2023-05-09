@@ -61,11 +61,10 @@ class Jimmy(BotAI):
         print(f"Ramp = {self.main_base_ramp}")
         print(f"Start Location = {self.start_location}")
         print(f"Enemy Location = {self.enemy_start_locations[0]}")
-        
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
         self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self)
         #add supply depots for ramp for 1st and 2nd Depots to be built
-        self.supply_depot_placement_list#[Point2] = self.main_base_ramp.corner_depots[0]
+        #self.supply_depot_placement_list#[Point2] = self.main_base_ramp.corner_depots[0]
 
     async def on_step(self, iteration: int):
         # Find all Command Centers
@@ -110,7 +109,7 @@ class Jimmy(BotAI):
 
 
         if len(self.build_order) > 0:
-            if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
+            if await build_next(self, self.build_order[self.buildstep], self.cc_managers, self.supply_depot_placement_list):
                 #TODO: keep this code until the check against the current buildings is finished
                 self.build_order.pop(self.buildstep) #remove item from the list once it's done
                 self.build_order_progress = (self.build_order_count-len(self.build_order))
@@ -150,7 +149,7 @@ class Jimmy(BotAI):
             self.client.debug_box2_out(expansion_pos3, half_vertex_length=0.5, color=green)
 
 #check prerequisites
-async def build_next(self: BotAI, buildrequest, cc_managers):
+async def build_next(self: BotAI, buildrequest, cc_managers, supply_depot_placement_list):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
     #example for how to read time target and execution:
     #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
@@ -181,7 +180,7 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
                 if await build_addon(self, unit_name):
                     return True
             else:
-                if await build_structure(self, unit_name): #building placement logic missing
+                if await build_structure(self, unit_name, supply_depot_placement_list[0]): #building placement logic missing
                     return True
         elif unitType == 'unit':
             #skip unit training
@@ -224,6 +223,9 @@ def calc_supply_depot_zones(self : BotAI):
         # After that build them as close to your mineral line as possible.
 
     print("I'm getting the set of Supply Depot placement locations")
+    #Since this is fixed, we just need to add the ramp depots first for build order
+    for depot in self.main_base_ramp.corner_depots:
+        supply_depot_placement_list.append(depot.position)
     #Determine if we are on top or bottom
     #build 5 centered on CC, then match last one and build 5 perpendicular
     direction_vector = get_direction_vector(self, self.enemy_start_locations[0], self.start_location)
@@ -252,15 +254,43 @@ def calc_supply_depot_zones(self : BotAI):
 
 
 def calc_tech_building_zones(self : BotAI):
-    print("I'm getting the set of Tech Buildings placement locations")
-    direction_vector = get_direction_vector(self, self.enemy_start_locations[0], self.start_location)
-    #print(f"This is my direction vector {direction_vector}")
+    """
+    Currently-Not-Done
+    This function will create a list of suitable locations for tech buildings
+    It will return multiple sets of coordinates in a list
+    We only do this once on start and use that list
+    for all future placement until it's empty
+    """
+    tech_buildings_placement_list: Set[Point2] = []
+    tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement.position)
+    # # Determine which side of the CC is furthest from ramp
+    # # this is a little different from supply depots - but we can mimick it
+    # direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp)
+    # distance_to_ramp = get_distance(self,self.start_location,self.main_base_ramp)
+    # distance_to_ramp = round(distance_to_ramp)
+    # xdirection = round(direction_vector.x)
+    # ydirection = round(direction_vector.y)
+    # x = round(self.start_location.x)
+    # y = round(self.start_location.y)
+    # #corner is an important point since it is our Corner that is in between us and enemy location
+    # #we can always add to the multiplier to increase the offset
+    # corner = Point2((x+(xdirection*10),y+(ydirection*10)))
+    # midpoint_to_ramp = Point2((x+((distance_to_ramp/2)*xdirection)),(y+((distance_to_ramp/2)*ydirection)))
+    # #tech_buildings_placement_list.append(midpoint_to_ramp)
+    # #tech buildings differ,  let's do 3x3 with room for addons
+    # #Only stack up with buildings for addon purposes
+    # #TODO #21 I need someone to fix this for me
+    # for axis_y in range(midpoint_to_ramp.x,midpoint_to_ramp.y+(16*ydirection),4*xdirection):
+    #     for fivebuildingset in range(midpoint_to_ramp.x+(xdirection*5),corner.y+(15*ydirection),3*ydirection):
+    #         temppoint = Point2((midpoint_to_ramp.x,axis_y))
+    #         tech_buildings_placement_list.append(temppoint)
+    return tech_buildings_placement_list
 
 def get_direction_vector(self : BotAI, point1 : Point2, point2 : Point2):
     """
     Given two Point2 (x,y) locations, return the direction vector
     Example get_direction_vector(self, self.start_location, self.main_base_ramp)
-    Returns Point2 tuple (-1.0, 1.0) showing ramp is left and higher than starting position
+    Example Returns (-1.0, 1.0) as a Point2 tuple showing ramp is left and higher than starting position
     This can be useful for attacking as well and can get vectors all the way to enemy position, etc
     """
     direction_vector = point1.direction_vector(point2)
@@ -271,11 +301,10 @@ def get_distance(self : BotAI, point1 : Point2, point2 : Point2):
     """
     Given two Point2 (x,y) locations, return the distance in units
     Example get_distance(self, self.start_location, self.enemy_start_locations[0])
-    Returns XYZ which can be useful to determine how long until enemy shows up at doorstep
+    Example Returns 115.5 which can be useful to determine how long until enemy shows up at doorstep
     This can be useful for prioritizing defending against enemy attacks
     """
     distance = point1.distance_to_point2(point2)
-    point1.distance_to(point2)
     return distance
 
 def main():
