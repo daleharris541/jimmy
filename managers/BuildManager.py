@@ -167,23 +167,24 @@ def build_on_ramp(self : BotAI, unit_name):
     Warning: Untested code. Placeholder only. Does Not Work Yet
     Attempting to properly place supply depots and a barracks on ramp
     """
-    if unit_name == "SUPPLYDEPOT":
-        if self.structures(UnitTypeId.SUPPLYDEPOT).amount < 3 and self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
-            depot_placement_positions: FrozenSet[Point2] = self.main_base_ramp.corner_depots
-            depots: Units = self.structures.of_type({UnitTypeId.SUPPLYDEPOT, UnitTypeId.SUPPLYDEPOTLOWERED})
-            if depots:
-                depot_placement_positions: Set[Point2] = {
-                    d
-                    for d in depot_placement_positions if depots.closest_distance_to(d) > 1
-                }
-            if self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
-                if len(depot_placement_positions) == 0:
-                    # if we have used up all the supply depot positions, then pick above command center
-                    # Only search along the X axis, but keep Y the same
-                    return False
-            # Choose any depot location
-            target_depot_location: Point2 = depot_placement_positions.pop()
-            return target_depot_location
-    else: #must be barracks
-        barracks_placement_position: Point2 = self.main_base_ramp.barracks_correct_placement
-        return barracks_placement_position
+    # Add the ramp depot
+    # if unit_name == "SUPPLYDEPOT":
+    #     if self.structures(UnitTypeId.SUPPLYDEPOT).amount < 3 and self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
+    #         depot_placement_positions: FrozenSet[Point2] = self.main_base_ramp.corner_depots
+    #         depots: Units = self.structures.of_type({UnitTypeId.SUPPLYDEPOT, UnitTypeId.SUPPLYDEPOTLOWERED})
+    #         if depots:
+    #             depot_placement_positions: Set[Point2] = {
+    #                 d
+    #                 for d in depot_placement_positions if depots.closest_distance_to(d) > 1
+    #             }
+    #         if self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
+    #             if len(depot_placement_positions) == 0:
+    #                 # if we have used up all the supply depot positions, then pick above command center
+    #                 # Only search along the X axis, but keep Y the same
+    #                 return False
+    #         # Choose any depot location
+    #         target_depot_location: Point2 = depot_placement_positions.pop()
+    #         return target_depot_location
+    # else: #must be barracks
+    #     barracks_placement_position: Point2 = self.main_base_ramp.barracks_correct_placement
+    #     return barracks_placement_position

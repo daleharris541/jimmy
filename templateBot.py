@@ -61,8 +61,11 @@ class Jimmy(BotAI):
         print(f"Ramp = {self.main_base_ramp}")
         print(f"Start Location = {self.start_location}")
         print(f"Enemy Location = {self.enemy_start_locations[0]}")
+        
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
         self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self)
+        #add supply depots for ramp for 1st and 2nd Depots to be built
+        self.supply_depot_placement_list#[Point2] = self.main_base_ramp.corner_depots[0]
 
     async def on_step(self, iteration: int):
         # Find all Command Centers
