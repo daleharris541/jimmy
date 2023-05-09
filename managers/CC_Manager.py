@@ -31,7 +31,7 @@ class CC_Manager:
 
         else:
             self.cc(AbilityId.LIFT)
-            landing_positon = self.closest_point(self.cc.position, self.get_expansion_location())
+            landing_positon = self.closest_point(self.bot.start_location, self.get_expansion_location())
             self.cc(AbilityId.LAND, landing_positon)
 
 ### Functions for Workers

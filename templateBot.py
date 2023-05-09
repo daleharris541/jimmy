@@ -23,34 +23,18 @@ class Jimmy(BotAI):
     
     #following code from bot.py from smoothbrain bot as example
     def __init__(self):
-        self.unit_command_uses_self_do = False
-        self.distance_calculation_method = 2
         self.game_step: int = 2                      # 2 usually, 6 vs human
-        self.build_starport_techlab_first = True     # always make techlab first on starport, good against dts, skytoss, burrowed roaches, and siege tanks
-        self.worker_rushed = False                   # tells if we are worker rushed, if the enemies were repelled we should close the wall quick before they come back
-        self.out_of_fight_workers = []               # workers with too low hp to defend a worker rush
-        self.scouting_units = []                     # lists units assigned to scout so that we do not cancel their orders
-        self.worker_assigned_to_repair = {}          # lists workers assigned to repair
-        self.worker_assigned_to_follow = {}          # lists workers assigned to follow objects (used to prevent Planetary Fortress rushes)
-        self.worker_assigned_to_defend = {}          # lists workers assigned to defend other workers during construction
-        self.worker_assigned_to_resume_building = {} # lists workers assigned to resume the construction of a building
-        self.worker_assigned_to_expand = {}          # lists workers assigned to expand /!\ not used yet
-        self.townhall_saturations = {}               # lists the mineral saturation of townhalls in queues of 40 frames, we consider the townhall saturated if max_number + 1 >= ideal_number
-        self.refineries_age = {}                     # this is here to tackle an issue with refineries having 0 workers on them when finished, although the building worker is assigned to it
-        self.lifted_cc_pos = {}                      # remember where lifted ccs were
-        self.scouted_at_time = -1000                 # save moment at which we scouted, so that we don't re-send units every frame
-        self.buildstep = 0
-        self.worker_pool = 12
+
         self.cc_managers = []
+        self.buildstep = 0
         self.build_order_progress = 0
         self.build_order_count = 0
-
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
+        self.worker_pool = 12
         self.debug = True
 
     async def on_start(self):
-        #print("Game started")
-        #Load build manager once and print once##
+        print("Game started")
         if self.build_order.count != 0:
             print("successfully loaded build order:")
             print(self.build_order)
@@ -85,15 +69,6 @@ class Jimmy(BotAI):
                         buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
                         print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
                         print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
-                #if self.buildstep < (len(self.build_order)):
-                    #self.buildstep = self.buildstep + 1
-                    
-                #if self.buildstep < (len(self.build_order)):
-                    #self.buildstep = self.buildstep + 1
-                    
-                #send to check against build order step
-
-        #await compare_dicts(self, self.build_order, self.buildstep) #debug
 
     async def on_end(self):
         print("Game ended.")
@@ -103,14 +78,10 @@ class Jimmy(BotAI):
 async def build_next(self: BotAI, buildrequest, cc_managers):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
     
-    #example for how to read time target and execution:
-    #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
     if self.debug:
         timer = int(self.time)
         realtime = datetime.timedelta(seconds=timer)
         print(f"Name: {unit_name} | Supply Target: {supplyRequired} | Supply Used: {self.supply_used} | BO Target Time: {gametime} | Game Time: {realtime}")
-    #logger.info(f"Executing at {self.time} - Step Time = {gametime}")
-    #would be cool to subtract the timing of the build based on actual and show ahead or behind
 
     if unitType == 'action':
         #skip actions
@@ -118,8 +89,6 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
     elif unitType == 'upgrade':
         await research_upgrade(self, unit_name)
         return True
-    #elif unitType == 'unit':
-    #    return True
 
     if self.can_afford(UnitTypeId[unit_name]) and self.tech_requirement_progress(UnitTypeId[unit_name]) == 1:
         if unitType == 'structure':
@@ -148,7 +117,7 @@ def main():
     run_game(
         maps.get("BerlingradAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":
