@@ -91,6 +91,8 @@ class Jimmy(BotAI):
             self.draw_expansions()
         
         # We want to be able to quickly respond to enemy attack:
+        # This is like the limbic system, it can quickly take over if we are in danger
+        # Otherwise, let the frontal lobe do all the work
 
         # Perhaps we can initiate this into a function call when an enemy is detected
         # instead of always doing this code + responding with attacking with nearby units
@@ -137,7 +139,6 @@ class Jimmy(BotAI):
         green = Point3((0, 255, 0))
         for p in self.supply_depot_placement_list:
             p = Point2(p)
-            print(f"Point: {p}")
             h2 = self.get_terrain_z_height(p)
             pos = Point3((p.x, p.y, h2))
             self.client.debug_box2_out(pos + Point2((0.5, 0.5)), half_vertex_length=2.5, color=green)
@@ -200,7 +201,9 @@ def calc_supply_depot_zones(self : BotAI):
     for all future placement until it's empty
     """
     supply_depot_placement_list: Set[Point2] = []
-#     24 is max supply depots needed to build with zero CC expansions
+        #               24 is max supply depots needed to build with zero CC expansions
+        # Below is advice from Reddit on proper supply depot placement we can do later
+        # Based on enemy race
         #     TVZ:
 
         # You'd want to wall your ramp & your natural. After that vision is important, but try to minimize
@@ -227,35 +230,16 @@ def calc_supply_depot_zones(self : BotAI):
     #Determine if we are on top or bottom
     #build 5 centered on CC, then match last one and build 5 perpendicular
     direction_vector = self.enemy_start_locations[0].direction_vector(self.start_location)
-    print(f"Enemy to Me Vector: {direction_vector}")
-    # if self.start_location.y < 70: #140 is top, 0 is bottom
-    #     #we are on bottom
-    #     if self.start_location.x < 70:
-    #         #we are on bottom left so get all locations by 2 units from left to right
-    #         xoffset = -10
-    #         yoffset = 2
-    #         starting_depot = Point2 (self.start_location.x-10,self.start_location.y+2)
-    #         depot_range = range(starting_depot.x,starting_depot+10)
-    #         for points in 
-    #             = self.find_placement(self.townhalls.first,self.start_location,4,True,2,False)
-    #     else:
-    #         #we are on the bottom right
-    #         starting_depot = Point2 (self.start_location.x+10,self.start_location.y+2)
-    # else:
-    #     #we are starting top left
-    #     if self.start_location.x < 70:
-    #         starting_depot = Point2 (self.start_location.x-10,self.start_location.y-2)
-    #     else:
-    #         starting_depot = Point2 (self.start_location.x+10,self.start_location.y-2)
+    print(f"Enemy to Me Vector: {direction_vector}") #Output Example: Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
     x = round(self.start_location.x)
     y = round(self.start_location.y)
     #corner is an important point since it is our Corner that is in between us and enemy location
     corner = Point2((x+(xdirection*2),y+(ydirection*2)))
-    print(f"Corner coordinate: {corner}")
-    supply_depot_placement_list.append(corner)
-    #we will now gather 10 more total placement locations, then populate it all into the list
+    #print(f"Corner coordinate: {corner}")
+    #supply_depot_placement_list.append(corner)
+    #we will now calculate 10 total placement locations, then populate it all into the list
     #supply depots are 2x2 units
     #add 5 supply depots to the list on each side
     for coordx in range(corner.x,corner.x+(10*xdirection),2*xdirection):
@@ -266,8 +250,6 @@ def calc_supply_depot_zones(self : BotAI):
         supply_depot_placement_list.append(temppoint)
     print(f"This is the point list before drawing: {supply_depot_placement_list}")
     return supply_depot_placement_list
-    # self.find_placement()
-    # if not map_area.x <=
 
 
 def calc_tech_building_zones(self : BotAI):
