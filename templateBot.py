@@ -63,10 +63,6 @@ class Jimmy(BotAI):
         print(f"Enemy Location = {self.enemy_start_locations[0]}")
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
         self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self)
-        self.draw_building_points()
-        self.draw_expansions()
-        print(f"Here is the list of supply depot placements: {self.supply_depot_placement_list}")
-        #print(self.supply_depot_placement_list)
 
     async def on_step(self, iteration: int):
         # Find all Command Centers
@@ -124,9 +120,7 @@ class Jimmy(BotAI):
                         print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
                 #if self.buildstep < (len(self.build_order)):
                     #self.buildstep = self.buildstep + 1
-                    
-                #if self.buildstep < (len(self.build_order)):
-                    #self.buildstep = self.buildstep + 1
+
                     
                 #send to check against build order step
 
@@ -135,6 +129,7 @@ class Jimmy(BotAI):
     #async def on_end(self):
         #print("Game ended.")
         # Do things here after the game ends
+        
     def draw_building_points(self):
         green = Point3((0, 255, 0))
         for p in self.supply_depot_placement_list:
@@ -229,15 +224,16 @@ def calc_supply_depot_zones(self : BotAI):
     print("I'm getting the set of Supply Depot placement locations")
     #Determine if we are on top or bottom
     #build 5 centered on CC, then match last one and build 5 perpendicular
-    direction_vector = self.enemy_start_locations[0].direction_vector(self.start_location)
+    direction_vector = get_direction_vector(self, self.enemy_start_locations[0], self.start_location)
+    distance = get_distance(self,self.start_location,self.enemy_start_locations[0])
     print(f"Enemy to Me Vector: {direction_vector}") #Output Example: Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
+    print(f"Distance from you to enemy {distance}")
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
     x = round(self.start_location.x)
     y = round(self.start_location.y)
     #corner is an important point since it is our Corner that is in between us and enemy location
-    corner = Point2((x+(xdirection*2),y+(ydirection*2)))
-    #print(f"Corner coordinate: {corner}")
+    corner = Point2((x+(xdirection*-2),y+(ydirection*-2)))
     #supply_depot_placement_list.append(corner)
     #we will now calculate 10 total placement locations, then populate it all into the list
     #supply depots are 2x2 units
@@ -254,10 +250,30 @@ def calc_supply_depot_zones(self : BotAI):
 
 def calc_tech_building_zones(self : BotAI):
     print("I'm getting the set of Tech Buildings placement locations")
-    direction_vector = self.townhalls.first.position.direction_vector(self.enemy_start_locations[0])
+    direction_vector = get_direction_vector(self, self.enemy_start_locations[0], self.start_location)
     #print(f"This is my direction vector {direction_vector}")
 
+def get_direction_vector(self : BotAI, point1 : Point2, point2 : Point2):
+    """
+    Given two Point2 (x,y) locations, return the direction vector
+    Example get_direction_vector(self, self.start_location, self.main_base_ramp)
+    Returns Point2 tuple (-1.0, 1.0) showing ramp is left and higher than starting position
+    This can be useful for attacking as well and can get vectors all the way to enemy position, etc
+    """
+    direction_vector = point1.direction_vector(point2)
+    point1.distance_to(point2)
+    return direction_vector
 
+def get_distance(self : BotAI, point1 : Point2, point2 : Point2):
+    """
+    Given two Point2 (x,y) locations, return the distance in units
+    Example get_distance(self, self.start_location, self.enemy_start_locations[0])
+    Returns XYZ which can be useful to determine how long until enemy shows up at doorstep
+    This can be useful for prioritizing defending against enemy attacks
+    """
+    distance = point1.distance_to_point2(point2)
+    point1.distance_to(point2)
+    return distance
 
 def main():
     run_game(
