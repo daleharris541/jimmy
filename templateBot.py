@@ -83,6 +83,8 @@ class Jimmy(BotAI):
         await idle_workers(self)
 
         if self.debug:
+            green = Point3((0, 255, 0))
+            self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             self.draw_building_points()
             self.draw_expansions()
         
@@ -107,11 +109,6 @@ class Jimmy(BotAI):
         if len(self.build_order) > 0:
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
-                self.build_order.pop(self.buildstep) #remove item from the list once it's done
-                self.build_order_progress = (self.build_order_count-len(self.build_order))
-                if self.debug:
-                        buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
-                        print(f"Build Step: {self.buildstep} Total Steps Remaining:{len(self.build_order)}")
                 self.build_order.pop(self.buildstep) #remove item from the list once it's done
                 self.build_order_progress = (self.build_order_count-len(self.build_order))
                 if self.debug:
@@ -149,12 +146,11 @@ class Jimmy(BotAI):
 #check prerequisites
 async def build_next(self: BotAI, buildrequest, cc_managers):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
-    
     #example for how to read time target and execution:
     #Target time for 2nd SCV to be queued to build - 12 seconds. Actual execution in game time: 8 seconds (Ahead)
-    if self.debug:
-        print("Unit Name: SupplyRequired : Supply Used: Target Time - " + str(gametime) + ": Current Minerals")
-        print(unit_name + "          " + str(supplyRequired) + "             " + str(self.supply_used) + "           " + (str(self.time)).split(".")[0] + "        " + str(self.minerals))
+    #if self.debug:
+        #print("Unit Name: SupplyRequired : Supply Used: Target Time - " + str(gametime) + ": Current Minerals")
+        #print(unit_name + "          " + str(supplyRequired) + "             " + str(self.supply_used) + "           " + (str(self.time)).split(".")[0] + "        " + str(self.minerals))
     #logger.info(f"Executing at {self.time} - Step Time = {gametime}")
     #would be cool to subtract the timing of the build based on actual and show ahead or behind
 
