@@ -3,15 +3,17 @@ from tools import makeBuildOrder
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
+from sc2.position import Point2, Point3
 from sc2.unit import Unit
 from sc2.units import Units
+from typing import FrozenSet, Set
 
 #This class should do the following.
 #   -Execute Build order.           -partially done
 #   -Track Build order progress     -partially done
 #   -Building placement.            -not started
 #   -Rebuild destroyed structures   -not started
- 
+
 async def get_build_progress(self: BotAI):
     structures = [structure for structure in self.structures if structure.is_ready]
     current_structures = {}
@@ -91,10 +93,25 @@ async def build_structure(self : BotAI, unit_name):
     This allows multiple attempts to build without skipping
     """
     cc : Unit = self.townhalls.first
-    #TODO #8 Reactor doesn't work - may break everything
 
+
+    #first two supply depots will be built on ramp, the rest on our planned layout
     if unit_name == "SUPPLYDEPOT":
-        await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 5))
+        if self.structures(UnitTypeId.SUPPLYDEPOT) < 3:
+            position = build_on_ramp(self, unit_name)
+            await self.build(UnitTypeId[unit_name], position)
+        else:
+            for x in range(10):
+                # if await self.can_place_single(UnitTypeId.REFINERY,(x,y),True):
+                #     await self.build(UnitTypeId[unit_name], position)
+                #     return True
+                # else:
+                #     #we can no longer place
+                return False
+    elif unit_name == "BARRACKS": #build all buildings (except first barracks) in a different area lined up top to bottom
+        if self.structures(UnitTypeId.BARRACKS).amount + self.already_pending(UnitTypeId.BARRACKS) > 0:
+            position = build_on_ramp(self, unit_name)
+            await self.build(UnitTypeId[unit_name], position)
         return True
     else:
         await self.build(UnitTypeId[unit_name], near=cc.position.towards(self.game_info.map_center, 12))
@@ -144,3 +161,29 @@ async def build_addon(self : BotAI, unit_name):
                 return True
             else:
                 return False
+    
+def build_on_ramp(self : BotAI, unit_name):
+    """
+    Warning: Untested code. Placeholder only. Does Not Work Yet
+    Attempting to properly place supply depots and a barracks on ramp
+    """
+    if unit_name == "SUPPLYDEPOT":
+        if self.structures(UnitTypeId.SUPPLYDEPOT) < 3 and self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
+            depot_placement_positions: FrozenSet[Point2] = self.main_base_ramp.corner_depots
+            depots: Units = self.structures.of_type({UnitTypeId.SUPPLYDEPOT, UnitTypeId.SUPPLYDEPOTLOWERED})
+            if depots:
+                depot_placement_positions: Set[Point2] = {
+                    d
+                    for d in depot_placement_positions if depots.closest_distance_to(d) > 1
+                }
+            if self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
+                if len(depot_placement_positions) == 0:
+                    # if we have used up all the supply depot positions, then pick above command center
+                    # Only search along the X axis, but keep Y the same
+                    return False
+            # Choose any depot location
+            target_depot_location: Point2 = depot_placement_positions.pop()
+            return target_depot_location
+    else: #must be barracks
+        barracks_placement_position: Point2 = self.main_base_ramp.barracks_correct_placement
+        return barracks_placement_position

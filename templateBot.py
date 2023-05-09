@@ -5,9 +5,10 @@ from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.main import run_game
 from sc2.player import Bot, Computer
-from sc2.position import Point2
+from sc2.position import Point2, Pointlike
 from sc2.unit import Unit
 from sc2.units import Units
+from typing import FrozenSet
 from loguru import logger
 from managers.BuildManager import get_build_order, compare_dicts, build_structure, build_addon
 from managers.ArmyManager import train_unit
@@ -42,7 +43,8 @@ class Jimmy(BotAI):
         self.cc_managers = []
         self.build_order_progress = 0
         self.build_order_count = 0
-
+        self.supply_depot_placement_list = []
+        self.tech_buildings_placement_list = []
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
         self.debug = True
 
@@ -55,7 +57,13 @@ class Jimmy(BotAI):
         else:
             print("Build order failed to load")
         self.build_order_count = len(self.build_order)
-        
+        print(f"Ramp = {self.main_base_ramp}")
+        print(f"Start Location = {self.start_location.y}")
+        print(f"Enemy Location = {self.enemy_start_locations[0].y}")
+        self.supply_depot_placement_list = calc_supply_depot_zones(self)
+        self.tech_buildings_placement_list = calc_tech_building_zones(self)
+        print(self.supply_depot_placement_list)
+
     async def on_step(self, iteration: int):
         # Find all Command Centers
         cc_list = self.townhalls
@@ -74,6 +82,22 @@ class Jimmy(BotAI):
 
         await idle_workers(self)
         
+        # We want to be able to quickly respond to enemy attack:
+
+        # Perhaps we can initiate this into a function call when an enemy is detected
+        # instead of always doing this code + responding with attacking with nearby units
+
+        # We can do this by having a ramp location instead
+        # Raise Ramp Wall when enemy detected nearby
+        for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
+            for unit in self.enemy_units:
+                if unit.distance_to(depot) < 15:
+                    depot(AbilityId.MORPH_SUPPLYDEPOT_RAISE)
+                    break
+            else:
+                depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
+
+
         if len(self.build_order) > 0:
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers):
                 #TODO: keep this code until the check against the current buildings is finished
@@ -143,6 +167,84 @@ async def build_next(self: BotAI, buildrequest, cc_managers):
         elif unitType == 'worker':
             await cc_managers[0].train_worker(70)
             return True
+
+def calc_supply_depot_zones(self : BotAI):
+    """
+    This function will create a list of suitable locations for supply depots
+    It will return multiple sets of coordinates in a list
+    We only do this once on start and use that list
+    for all future placement until it's empty
+    """
+    supply_depot_placement_list = []
+#     24 is max supply depots needed to build with zero CC expansions
+        #     TVZ:
+
+        # You'd want to wall your ramp & your natural. After that vision is important, but try to minimize
+        # travel distance for SCVs. You can wall your third, on certain maps I like to do it, but not if it costs
+        # like 8 depots to wall off. Some pros even do it even when it takes a lot of depots,
+        # so it's not neccesarily wrong to do it, more of a personal preference.
+
+        #     TVT:
+
+        # On 2 player maps I like to build the first depot at the ramp, so you can spot for reaper allins.
+        # If you later find out your opponent is massing hellions For GG style, build 2 more depots.
+
+        # After that I build depots as close to my mineral line as possible, as that's simply the most efficient
+        # economy-wise. If you don't see a banshee @ 7:00 I build ~2 depots at the edges 
+        # (just enough to give you vision) to spot for doomdrops/marine hellion medivac builds.
+
+        #     TVP:
+
+        # On 2 player maps the same as TVT, first depot at the ramp, so you can 100% of the time see a probe 
+        # enter your base. It's not perfectly efficient but you're pretty much immune to inbase proxy 2 gate.
+        # After that build them as close to your mineral line as possible.
+
+    print("I'm getting the set of Supply Depot placement locations")
+    #Determine if we are on top or bottom
+    #build 5 centered on CC, then match last one and build 5 perpendicular
+    direction_vector = self.townhalls.first.position.direction_vector(self.enemy_start_locations[0])
+    print(f"This is my direction vector {direction_vector}")
+    # if self.start_location.y < 70: #140 is top, 0 is bottom
+    #     #we are on bottom
+    #     if self.start_location.x < 70:
+    #         #we are on bottom left so get all locations by 2 units from left to right
+    #         xoffset = -10
+    #         yoffset = 2
+    #         starting_depot = Point2 (self.start_location.x-10,self.start_location.y+2)
+    #         depot_range = range(starting_depot.x,starting_depot+10)
+    #         for points in 
+    #             = self.find_placement(self.townhalls.first,self.start_location,4,True,2,False)
+    #     else:
+    #         #we are on the bottom right
+    #         starting_depot = Point2 (self.start_location.x+10,self.start_location.y+2)
+    # else:
+    #     #we are starting top left
+    #     if self.start_location.x < 70:
+    #         starting_depot = Point2 (self.start_location.x-10,self.start_location.y-2)
+    #     else:
+    #         starting_depot = Point2 (self.start_location.x+10,self.start_location.y-2)
+    xdirection = direction_vector.x
+    ydirection = direction_vector.y
+    #corner is an important point since it is our Corner that is in between us and enemy location
+    corner = Point2((self.start_location.x+(xdirection*2),self.start_location.y+(ydirection*2)))
+    print(f"Corner coordinate: {corner}")
+    supply_depot_placement_list.append(corner)
+    #we will now gather 10 more total placement locations, then populate it all into the list
+    #supply depots are 2x2 units
+    #add 5 supply depots to the list on each side
+    for coordx in range(corner.x,corner.x+(10*xdirection),2*xdirection):
+        supply_depot_placement_list.append(coordx,corner.y)
+    for coordy in range(corner.y,corner.y+(10*ydirection),2*ydirection):
+        supply_depot_placement_list.append(corner.x,coordy)
+    return supply_depot_placement_list
+    # self.find_placement()
+    # if not map_area.x <= 
+
+def calc_tech_building_zones(self : BotAI):
+    print("I'm getting the set of Tech Buildings placement locations")
+    direction_vector = self.townhalls.first.position.direction_vector(self.enemy_start_locations[0])
+    #print(f"This is my direction vector {direction_vector}")
+
 
 def main():
     run_game(
