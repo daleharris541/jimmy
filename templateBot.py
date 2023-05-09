@@ -324,8 +324,7 @@ def get_distance(self, point1 : Point2, point2 : Point2):
     Example Returns 115.5 which can be useful to determine how long until enemy shows up at doorstep
     This can be useful for prioritizing defending against enemy attacks
     """
-    for points in point2:
-        distance = point1.distance_to_point2(points)
+    distance = point1.distance_to_point2(point2)
     return distance
 
 def main():
