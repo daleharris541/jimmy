@@ -36,7 +36,7 @@ class RampWallBot(BotAI):
             cc.train(UnitTypeId.SCV)
 
         # Raise depos when enemies are nearby
-        for depo in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
+        for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
             for unit in self.enemy_units:
                 if unit.distance_to(depo) < 15:
                     break
@@ -164,9 +164,9 @@ class RampWallBot(BotAI):
 
     def draw_placement_grid(self):
         map_area = self.game_info.playable_area
-        for (b, a), value in np.ndenumerate(self.game_info.placement_grid.data_numpy):
-            if value == 0:
-                continue
+            #for (b, a), value in np.ndenumerate(self.game_info.placement_grid.data_numpy):
+            #if value == 0:
+            #    continue
             # Skip values outside of playable map area
             if not map_area.x <= a < map_area.x + map_area.width:
                 continue
