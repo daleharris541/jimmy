@@ -128,12 +128,15 @@ class Jimmy(BotAI):
         # Do things here after the game ends
         
     def draw_building_points(self):
+        counter = 0
         green = Point3((0, 255, 0))
         for p in self.supply_depot_placement_list:
             p = Point2(p)
             h2 = self.get_terrain_z_height(p)
             pos = Point3((p.x, p.y, h2))
-            self.client.debug_box2_out(pos + Point2((0.5, 0.5)), half_vertex_length=2.5, color=green)
+            self.client.debug_text_world(text=str(counter),pos=pos,color=green,size=16)
+            self.client.debug_box2_out(pos + Point2((0.5, 0.5)), half_vertex_length=0.5, color=green)
+            counter += 1
         #self.client.debug_box2_out((self.start_location,self.get_terrain_z_height(self.start_location)), half_vertex_length=2.5, color=green)
 
     def draw_expansions(self):
@@ -141,7 +144,7 @@ class Jimmy(BotAI):
         for expansion_pos in self.expansion_locations_list:
             height = self.get_terrain_z_height(expansion_pos)
             expansion_pos3 = Point3((*expansion_pos, height))
-            self.client.debug_box2_out(expansion_pos3, half_vertex_length=2.5, color=green)
+            self.client.debug_box2_out(expansion_pos3, half_vertex_length=0.5, color=green)
 
 #check prerequisites
 async def build_next(self: BotAI, buildrequest, cc_managers):
@@ -229,15 +232,16 @@ def calc_supply_depot_zones(self : BotAI):
     x = round(self.start_location.x)
     y = round(self.start_location.y)
     #corner is an important point since it is our Corner that is in between us and enemy location
-    corner = Point2((x+(xdirection*-2),y+(ydirection*-2)))
+    #we can always add to the multiplier to increase the offset
+    corner = Point2((x+(xdirection*-5),y+(ydirection*-5)))
     #supply_depot_placement_list.append(corner)
     #we will now calculate 10 total placement locations, then populate it all into the list
     #supply depots are 2x2 units
-    #add 5 supply depots to the list on each side
+    #add 9 supply depots to be symmetrical can not do 11 since placement will be rough
     for coordx in range(corner.x,corner.x+(10*xdirection),2*xdirection):
         temppoint = Point2((coordx,corner.y))
         supply_depot_placement_list.append(temppoint)
-    for coordy in range(corner.y,corner.y+(10*ydirection),2*ydirection):
+    for coordy in range(corner.y+(-2*xdirection),corner.y+(10*ydirection),2*ydirection):
         temppoint = Point2((corner.x,coordy))
         supply_depot_placement_list.append(temppoint)
     print(f"This is the point list before drawing: {supply_depot_placement_list}")
