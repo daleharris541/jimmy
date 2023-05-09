@@ -112,7 +112,7 @@ async def build_structure(self : BotAI, unit_name, pos=None):
         else:
             return False
     else:
-        if (await self.build(UnitTypeId[unit_name],pos)):
+        if (await self.build(UnitTypeId[unit_name],near = cc.position.towards(self.game_info.map_center, 15))):
             return True
         else:
             return False
