@@ -106,7 +106,7 @@ async def build_structure(self : BotAI, unit_name, pos=None):
             return False
     elif unit_name == "BARRACKS": #build all buildings (except first barracks) in a different area lined up top to bottom
         if self.structures(UnitTypeId.BARRACKS).amount + self.already_pending(UnitTypeId.BARRACKS) == 0:
-            pos = self.main_base_ramp.barracks_correct_placement
+            pos = self.main_base_ramp.barracks_correct_placement.as_Point2D
         if (await self.build(UnitTypeId[unit_name], pos)):
             return True
         else:

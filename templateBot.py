@@ -49,6 +49,9 @@ class Jimmy(BotAI):
         self.tech_buildings_placement_list: Set[Point2] = []
         self.build_order = get_build_order(self,'16marinedrop-example')    #    16marinedrop-example or debug
         self.debug = True
+        self.normal_buildings = ['BARRACKS','STARPORT','ENGINEERINGBAY','FACTORY']
+        self.building_list = []
+
 
     async def on_start(self):
         #print("Game started")
@@ -65,7 +68,13 @@ class Jimmy(BotAI):
         worker = self.select_build_worker(self.start_location.position)
         self.shimmy_the_wonder_SCV = worker.tag
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
-        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self)
+        for item in self.build_order:
+            if "structure" in item:
+                if item[0] in self.normal_buildings:
+                    self.building_list.append(item[0])
+        print(f"Building List Count: {len(self.building_list)}")
+        print(self.building_list)
+        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2], self.building_list)
         #worker.move(self.supply_depot_placement_list[0])
 
         #self.worker_assigned_to_premove.add(worker)
@@ -75,7 +84,7 @@ class Jimmy(BotAI):
 
     async def on_step(self, iteration: int):
         #first check is to look for enemy units
-        self.on_enemy_unit_entered_vision()
+        #await self.on_enemy_unit_entered_vision(Unit)
         # Find all Command Centers
         cc_list = self.townhalls
         # Create a new CC_Manager instance for each Command Center if it doesn't already exist
@@ -95,11 +104,14 @@ class Jimmy(BotAI):
 
         if self.debug:
             green = Point3((0, 255, 0))
+            red = Point3((0,0,255))
+            blue = Point3((255,0,0))
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
-            self.draw_building_points(self, self.supply_depot_placement_list)
-            self.draw_building_points(self, self.tech_buildings_placement_list)
+            #properly send each item in the build order for tech buildings
+            self.draw_building_points(self.supply_depot_placement_list, green, ['depot'])
+            self.draw_building_points(self.tech_buildings_placement_list, red, self.building_list)
             self.draw_expansions()
-        
+
         # We want to be able to quickly respond to enemy attack:
         # This is like the limbic system, it can quickly take over if we are in danger
         # Otherwise, let the frontal lobe do all the work
@@ -108,51 +120,55 @@ class Jimmy(BotAI):
         # instead of always doing this code + responding with attacking with nearby units
         # We can do this by having a ramp location instead
         
-        
-
         if len(self.build_order) > 0:
             if await build_next(self, self.build_order[self.buildstep], self.cc_managers, self.supply_depot_placement_list, self.tech_buildings_placement_list):
                 #TODO: keep this code until the check against the current buildings is finished
-                if "SUPPLYDEPOT" in self.build_order[self.buildstep]:
-                    self.supply_depot_placement_list.pop(self.buildstep)
                 self.build_order.pop(self.buildstep) #remove item from the list once it's done
+                self.buildstep += 1
                 self.build_order_progress = (self.build_order_count-len(self.build_order))
                 if self.debug:
                         buildOrderPercentage = 100 * ((self.build_order_count-len(self.build_order))/self.build_order_count)
                         print(f"Build Step: {self.build_order_progress} Total Steps Remaining:{len(self.build_order)}")
                         print("Percentage of build order completed: %.2f%%" % (buildOrderPercentage))
-                        await self.label_unit(self, self.shimmy_the_wonder_SCV, "Shimmy")
+                        #await self.label_unit(self.shimmy_the_wonder_SCV, "Shimmy")
         
         #await compare_dicts(self, self.build_order, self.buildstep) #debug
 
-    async def on_end(self):
-        print("Game ended.")
+    # async def on_end(self):
+    #     print("Game ended.")
         # Do things here after the game ends
         
     async def label_unit(self, unit, text):
         #worker = self.workers.by_tag(self.shimmy_the_wonder_SCV)
-        self.client.debug_text_3d(text=text,pos=unit,color=(0,255,0),size=14)
+        green = Point3((0, 255, 0))
+        self.client.debug_text_3d(text=text, pos=unit, color=green, size=14)
         # if self.build_order_progress < .05 and self.minerals >30:
         #     unit.move(self.supply_depot_placement_list[0])
 
-    def on_enemy_unit_entered_vision(self, unit: Unit):
+    #def on_enemy_unit_entered_vision(self, unit: Unit):
         # Raise Ramp Wall when enemy detected nearby
-        if unit.distance_to(self.main_base_ramp.top_center.position) < 15:
-            for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
-                depot(AbilityId.MORPH_SUPPLYDEPOT_RAISE)
-        else:
-            self.structures(UnitTypeId.SUPPLYDEPOT)(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
+        # if get_distance(self,self.main_base_ramp.top_center,Unit.position) < 15:
+        #     for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
+        #         depot(AbilityId.MORPH_SUPPLYDEPOT_RAISE)
+        # else:
+        #     for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
+        #         depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
             
-    def draw_building_points(self, points):
+    def draw_building_points(self, points : Set[Point2], color : Point3, labels : list):
         counter = 0
-        green = Point3((0, 255, 0))
+        print(f"Count of points being sent: {len(points)}")
+        print(f"Length of buildings list {len(labels)}")
         for p in points:
             p = Point2(p)
             h2 = self.get_terrain_z_height(p)
             pos = Point3((p.x, p.y, h2))
-            self.client.debug_text_world(text=str(counter),pos=pos,color=green,size=16)
-            self.client.debug_box2_out(pos + Point2((0.5, 0.5)), half_vertex_length=0.5, color=green)
-            counter += 1
+            if len(labels) > counter-1:
+                self.client.debug_text_world(text=labels[counter],pos=pos,color=Point3((0,0,255)),size=16)
+                counter += 1
+            else:
+                self.client.debug_text_world(text='Depot',pos=pos,color=Point3((0,0,255)),size=16)
+            self.client.debug_box2_out(pos + Point2((0.5, 0.5)), half_vertex_length=0.5, color=color)
+
         #self.client.debug_box2_out((self.start_location,self.get_terrain_z_height(self.start_location)), half_vertex_length=2.5, color=green)
 
     def draw_expansions(self):
@@ -162,7 +178,7 @@ class Jimmy(BotAI):
             expansion_pos3 = Point3((*expansion_pos, height))
             self.client.debug_box2_out(expansion_pos3, half_vertex_length=0.5, color=green)
 
-#check prerequisites
+#function to later move somewhere else
 async def build_next(self: BotAI, buildrequest, cc_managers, sd_pos, tech_pos):
     unit_name, unitId, unitType, supplyRequired, gametime, frame = buildrequest
     #example for how to read time target and execution:
@@ -244,7 +260,7 @@ def calc_supply_depot_zones(self : BotAI):
         # enter your base. It's not perfectly efficient but you're pretty much immune to inbase proxy 2 gate.
         # After that build them as close to your mineral line as possible.
 
-    print("I'm getting the set of Supply Depot placement locations")
+    #print("I'm getting the set of Supply Depot placement locations")
     #Since this is fixed, we just need to add the ramp depots first for build order
     for depot in self.main_base_ramp.corner_depots:
         supply_depot_placement_list.append(depot.position)
@@ -253,7 +269,6 @@ def calc_supply_depot_zones(self : BotAI):
     direction_vector = get_direction_vector(self, self.enemy_start_locations[0], self.start_location)
     distance = get_distance(self,self.start_location,self.enemy_start_locations[0])
     #print(f"Enemy to Me Vector: {direction_vector}") #Output Example: Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
-    #print(f"Distance from you to enemy {distance}")
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
     x = round(self.start_location.x)
@@ -266,18 +281,15 @@ def calc_supply_depot_zones(self : BotAI):
     #supply depots are 2x2 units
     #add 9 supply depots to be symmetrical can not do 11 since placement will be rough
     for coordx in range(corner.x,corner.x+(10*xdirection),2*xdirection):
-        temppoint = Point2((coordx,corner.y))
-        supply_depot_placement_list.append(temppoint)
+        supply_depot_placement_list.append(Point2((coordx,corner.y)))
     for coordy in range(corner.y+(-2*xdirection),corner.y+(10*ydirection),2*ydirection):
-        temppoint = Point2((corner.x,coordy))
-        supply_depot_placement_list.append(temppoint)
+        supply_depot_placement_list.append(Point2((corner.x,coordy)))
     #print(f"This is the point list before drawing: {supply_depot_placement_list}")
     return supply_depot_placement_list
 
 
-def calc_tech_building_zones(self : BotAI):
+def calc_tech_building_zones(self : BotAI, corner_supply_depot : Point2, building_list):
     """
-    Currently-Not-Done
     This function will create a list of suitable locations for tech buildings
     It will return multiple sets of coordinates in a list
     We only do this once on start and use that list
@@ -286,16 +298,25 @@ def calc_tech_building_zones(self : BotAI):
     tech_buildings_placement_list: Set[Point2] = []
     tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement.position)
     #shoot vector towards self.start_location
-    direction_vector = get_direction_vector(self,self.main_base_ramp,self.start_location).rounded
-    midpoint_to_ramp = round(get_distance(self,self.start_location,self.main_base_ramp)/2)
-
+    direction_vector = get_direction_vector(self,self.main_base_ramp.top_center.position,self.start_location).rounded
     # #tech buildings footprint 5x5 with 2x2 "lane"
     # #Only placement in columns with buildings for addon purposes
-    # #TODO #21 I need someone to fix this for me
-    for axis_y in range(midpoint_to_ramp.x,midpoint_to_ramp.y+(16*direction_vector.rounded.y),4*direction_vector.rounded.y):
-        #for fivebuildingset in range(midpoint_to_ramp.x+(xdirection*5),midpoint_to_ramp.y+(15*ydirection),3*ydirection):
-        temppoint = Point2((midpoint_to_ramp.x,axis_y))
-        tech_buildings_placement_list.append(temppoint)
+    # #TODO #21 Barracks are 3x3 + addon = 
+    # spacing represents the building + addon + 2x2 for a "lane"
+    # can't do a ton of rows, but can do a lot stacked along Y axis (column)
+    # so spacing is how far the distance will be between 5 buildings stacked in a column
+    # if we send the build order queue to this function, we can swap out the BARRACKS for actual building
+    # Then it can iterate through and properly place our build order items if structure in the matrix
+    # properly allowing for size and custom making the grid match the build order and just increment the build order step
+    spacing = 5
+    i = 0
+    for offset in range(spacing,spacing*spacing,spacing):
+        for axis_y in range(corner_supply_depot.y,corner_supply_depot.y+(15*(round(direction_vector.y))),3*(round(direction_vector.y))):
+            if self.can_place_single(UnitTypeId[building_list[i]],Point2((corner_supply_depot.x+(-1*offset*direction_vector.x),axis_y))):
+                tech_buildings_placement_list.append(Point2((corner_supply_depot.x+(-1*offset*direction_vector.x),axis_y)))
+                i += 1
+                if i-1 == len(building_list)-1:
+                    return tech_buildings_placement_list
     return tech_buildings_placement_list
 
 def get_direction_vector(self, point1 : Point2, point2 : Point2):
