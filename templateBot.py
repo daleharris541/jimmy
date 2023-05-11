@@ -49,9 +49,7 @@ class Jimmy(BotAI):
         self.tech_buildings_placement_list: Set[Point2] = []
         self.normal_buildings = ["BARRACKS", "STARPORT", "ENGINEERINGBAY", "FACTORY", "FUSION CORE", "ARMORY"]
         self.building_list = []
-        self.build_order = get_build_order(
-            self, "16marinedrop-example"
-        )  # 16marinedrop-example or debug
+        self.build_order = get_build_order(self, "16marinedrop-example")  # 16marinedrop-example or debug
         self.debug = True
 
     async def on_start(self):
@@ -62,9 +60,7 @@ class Jimmy(BotAI):
         else:
             print("Build order failed to load")
         self.build_order_count = len(self.build_order)
-        self.building_list = [
-            step for step in self.build_order if step[0] in self.normal_buildings
-        ]
+        self.building_list = [step for step in self.build_order if step[0] in self.normal_buildings]
         # Have to figure out how to reconcile the situation carefully
         # 7 points are added, 6 buildings are in list
         # The first barracks is automatic, so my choice is to add additional entry to building list to match
@@ -72,9 +68,9 @@ class Jimmy(BotAI):
         print(self.building_list[0][0])
 
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
-        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(
-            self, self.supply_depot_placement_list[2], self.building_list
-        )
+        
+        self.corner_depots_possition= [self.supply_depot_placement_list[5], self.supply_depot_placement_list[9]]
+        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.corner_depots_possition, self.building_list)
 
     async def on_step(self, iteration: int):
         # Find all Command Centers
@@ -100,16 +96,10 @@ class Jimmy(BotAI):
             green = Point3((0, 255, 0))
             red = Point3((0, 0, 255))
             blue = Point3((255, 0, 0))
-            self.client.debug_text_screen(
-                text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18
-            )
+            self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             # properly send each item in the build order for tech buildings
-            draw_building_points(
-                self, self.supply_depot_placement_list, green, ["depot"]
-            )
-            draw_building_points(
-                self, self.tech_buildings_placement_list, green, self.building_list, 1
-            )
+            draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list)
+            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list, 1)
 
         # We want to be able to quickly respond to enemy attack:
         # This is like the limbic system, it can quickly take over if we are in danger
@@ -157,7 +147,7 @@ async def build_next(self: BotAI, buildrequest, cc_managers, sd_pos, tech_pos):
         timer = int(self.time)
         realtime = datetime.timedelta(seconds=timer)
         print(
-            f"Name: {unit_name} | Supply Target: {supplyRequired} | Supply Used: {self.supply_used} | BO Target Time: {gametime} | Game Time: {realtime}"
+            #f"Name: {unit_name} | Supply Target: {supplyRequired} | Supply Used: {self.supply_used} | BO Target Time: {gametime} | Game Time: {realtime}"
         )
 
     if unitType == "action":
@@ -196,14 +186,12 @@ async def build_next(self: BotAI, buildrequest, cc_managers, sd_pos, tech_pos):
             await cc_managers[0].train_worker(70)
             return True
 
-
 def main():
     run_game(
         maps.get("DeathAuraLE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
-
 
 if __name__ == "__main__":
     main()

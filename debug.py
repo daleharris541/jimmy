@@ -126,9 +126,7 @@ def calc_supply_depot_zones(self: BotAI):
     return supply_depot_placement_list
 
 
-def calc_tech_building_zones(
-    self: BotAI, corner_supply_depot: Point2, building_list: list,
-):
+def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_list: list,):
     """
     This function will create a list of suitable locations for tech buildings
     It will return multiple sets of coordinates in a list
@@ -136,13 +134,27 @@ def calc_tech_building_zones(
     for all future placement until it's empty
     """
     tech_buildings_placement_list: Set[Point2] = []
-    tech_buildings_placement_list.append(
-        self.main_base_ramp.barracks_correct_placement.position
-    )
+    tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement.position)
     # shoot vector towards self.start_location
-    direction_vector = get_direction_vector(
-        self, self.main_base_ramp.top_center.position, self.start_location
-    ).rounded
+    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
+    
+    first_depot = corner_supply_depots[0]
+    last_depot = corner_supply_depots[1]
+
+    if first_depot.y > last_depot.y:
+        if direction_vector.y > 0:
+            corner_supply_depot = first_depot
+        else:
+            corner_supply_depot = last_depot
+    else:
+        if direction_vector.y > 0:
+            corner_supply_depot = last_depot
+        else:
+            corner_supply_depot = first_depot
+
+    #corner_supply_depot = corner_supply_depots[0]
+    print(f"selected depot {corner_supply_depot}")
+
     # #tech buildings footprint 5x5 with 2x2 "lane"
     # #Only placement in columns with buildings for addon purposes
     # #TODO #21 Barracks are 3x3 + addon =
@@ -155,27 +167,16 @@ def calc_tech_building_zones(
     spacing = 5
     i = 0
     for offset in range(spacing, spacing * 3, spacing):
-        for axis_y in range(
-            corner_supply_depot.y,
-            corner_supply_depot.y + (9 * (round(direction_vector.y))),
-            3 * (round(direction_vector.y)),
-        ):
-            if self.can_place_single(
-                UnitTypeId.BARRACKS,
-                Point2(
-                    (corner_supply_depot.x + (1 * offset * direction_vector.x), axis_y)),):
-                tech_buildings_placement_list.append(
-                    Point2(
-                        (corner_supply_depot.x + (1 * offset * direction_vector.x),axis_y,)
-                    )
-                )
+        for axis_y in range(corner_supply_depot.y, corner_supply_depot.y + (9 * (round(direction_vector.y))), 3 * (round(direction_vector.y)),):
+            if self.can_place_single(UnitTypeId.BARRACKS, Point2((corner_supply_depot.x + (offset * direction_vector.x), axis_y)),):
+                tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * direction_vector.x), axis_y,)))
                 i += 1
-                print("It worked!")
                 if i == len(building_list) - 1:
                     return tech_buildings_placement_list
             else:
                 print(f"Couldn't place building at {Point2((corner_supply_depot.x + (-1 * offset * direction_vector.x),axis_y,))}")
-    # return tech_buildings_placement_list
+    print(tech_buildings_placement_list)
+    return tech_buildings_placement_list
 
 
 def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
