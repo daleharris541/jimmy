@@ -156,25 +156,13 @@ def calc_tech_building_zones(
     i = 0
     for offset in range(spacing, spacing * 3, spacing):
         for axis_y in range(
-            corner_supply_depot.y,
-            corner_supply_depot.y + (9 * (round(direction_vector.y))),
-            3 * (round(direction_vector.y)),
-        ):
+            corner_supply_depot.y + (3*(round(direction_vector.y))), corner_supply_depot.y + (12 * (round(direction_vector.y))),3 * (round(direction_vector.y)),):
             if self.can_place_single(
-                UnitTypeId.BARRACKS,
-                Point2(
-                    (corner_supply_depot.x + (1 * offset * direction_vector.x), axis_y)),):
-                tech_buildings_placement_list.append(
-                    Point2(
-                        (corner_supply_depot.x + (1 * offset * direction_vector.x),axis_y,)
-                    )
-                )
+                UnitTypeId.BARRACKS,Point2((corner_supply_depot.x + (-1 * offset * direction_vector.x), axis_y)),):
+                tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (-1 * offset * direction_vector.x),axis_y,)))
                 i += 1
-                print("It worked!")
                 if i == len(building_list) - 1:
                     return tech_buildings_placement_list
-            else:
-                print(f"Couldn't place building at {Point2((corner_supply_depot.x + (-1 * offset * direction_vector.x),axis_y,))}")
     # return tech_buildings_placement_list
 
 
