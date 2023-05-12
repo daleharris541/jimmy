@@ -67,9 +67,11 @@ class Jimmy(BotAI):
         print(f"Building List Count: {len(self.building_list)}")
         print(self.building_list[0][0])
 
-        self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
         
-        self.corner_depots_possition= [self.supply_depot_placement_list[5], self.supply_depot_placement_list[9]]
+        temp, depot1, depot2 = calc_supply_depot_zones(self)
+        self.supply_depot_placement_list: Set[Point2] = temp
+        
+        self.corner_depots_possition= [depot1, depot2]
         self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.corner_depots_possition, self.building_list)
 
     async def on_step(self, iteration: int):
@@ -98,8 +100,8 @@ class Jimmy(BotAI):
             blue = Point3((255, 0, 0))
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             # properly send each item in the build order for tech buildings
-            draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list)
-            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list, 1)
+            draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list, .75)
+            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list, 1.25)
 
         # We want to be able to quickly respond to enemy attack:
         # This is like the limbic system, it can quickly take over if we are in danger

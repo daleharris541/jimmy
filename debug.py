@@ -23,7 +23,7 @@ def label_unit(self: BotAI, unit, text):
 #         depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
 
 
-def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels: list, half_vertex_length = 0.5):
+def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels: list, half_vertex_length = 1):
     """
     This function creates green boxes based on points
     It will also draw labels you give it
@@ -39,18 +39,14 @@ def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels
         pos = Point3((p.x, p.y, h2))
         if len(labels) > 1:
             self.client.debug_text_world(
-                text=str(labels[counter][0]),
+                text=str(f"{p.x-half_vertex_length},{p.y-half_vertex_length}"),
                 pos=pos,
                 color=Point3((0, 0, 255)),
                 size=16,
             )
             counter += 1
-        else:
-            self.client.debug_text_world(
-                text="Depot", pos=pos, color=Point3((0, 0, 255)), size=16
-            )
         self.client.debug_box2_out(
-            pos + Point2((0.5, 0.5)), half_vertex_length=half_vertex_length, color=color
+            pos + Point2((half_vertex_length,half_vertex_length)), half_vertex_length=half_vertex_length, color=color
         )
 
     # self.client.debug_box2_out((self.start_location,self.get_terrain_z_height(self.start_location)), half_vertex_length=2.5, color=green)
@@ -120,10 +116,12 @@ def calc_supply_depot_zones(self: BotAI):
     # add 9 supply depots to be symmetrical can not do 11 since placement will be rough
     for coordx in range(corner.x, corner.x + (10 * xdirection), 2 * xdirection):
         supply_depot_placement_list.append(Point2((coordx, corner.y)))
+        depot1 = Point2((corner.x + (8 * xdirection),corner.y))
     for coordy in range(corner.y + (-2 * xdirection), corner.y + (10 * ydirection), 2 * ydirection):
         supply_depot_placement_list.append(Point2((corner.x, coordy)))
+        depot2 = Point2((corner.x, corner.y + (8 * ydirection)))
     # print(f"This is the point list before drawing: {supply_depot_placement_list}")
-    return supply_depot_placement_list
+    return supply_depot_placement_list, depot1, depot2
 
 
 def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_list: list,):
@@ -134,13 +132,14 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     for all future placement until it's empty
     """
     tech_buildings_placement_list: Set[Point2] = []
-    tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement.position)
+    tech_buildings_placement_list.append(self.main_base_ramp.barracks_in_middle.position)
     # shoot vector towards self.start_location
     direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
     
+    starting_height = self.get_terrain_z_height(self.start_location)
     first_depot = corner_supply_depots[0]
     last_depot = corner_supply_depots[1]
-
+    corner_supply_depot: Point2
     if first_depot.y > last_depot.y:
         if direction_vector.y > 0:
             corner_supply_depot = first_depot
@@ -166,16 +165,20 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     # properly allowing for size and custom making the grid match the build order and just increment the build order step
     spacing = 5
     i = 0
-    for offset in range(spacing, spacing * 3, spacing):
-        for axis_y in range(corner_supply_depot.y, corner_supply_depot.y + (9 * (round(direction_vector.y))), 3 * (round(direction_vector.y)),):
-            if self.can_place_single(UnitTypeId.BARRACKS, Point2((corner_supply_depot.x + (offset * direction_vector.x), axis_y)),):
+    for offset in range(0, spacing * spacing, spacing):
+        for axis_y in range(corner_supply_depot.y+(3*round(direction_vector.y)), corner_supply_depot.y + (30 * (round(direction_vector.y))), 3 * (round(direction_vector.y)),):
+            bad_placement = False
+            for corner_y in range(0,6,3):
+                for corner_x in range(0, 6, 3):
+                    if self.in_placement_grid(Point2(((corner_supply_depot.x + (offset * direction_vector.x))+corner_x, axis_y + corner_y))) and self.get_terrain_z_height(Point2(((corner_supply_depot.x + (offset * direction_vector.x))+corner_x, axis_y + corner_y))) == starting_height:
+                        print(f"Good = ({corner_x},{corner_y}")
+                    else:
+                        print(f"Bad = ({corner_x},{corner_y}")
+                        bad_placement = True
+            if bad_placement == False:
                 tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * direction_vector.x), axis_y,)))
                 i += 1
-                if i == len(building_list) - 1:
-                    return tech_buildings_placement_list
-            else:
-                print(f"Couldn't place building at {Point2((corner_supply_depot.x + (-1 * offset * direction_vector.x),axis_y,))}")
-    print(tech_buildings_placement_list)
+    #print(tech_buildings_placement_list)
     return tech_buildings_placement_list
 
 
