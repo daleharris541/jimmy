@@ -67,11 +67,10 @@ class Jimmy(BotAI):
         print(f"Building List Count: {len(self.building_list)}")
         print(self.building_list[0][0])
 
-        
         temp, depot1, depot2 = calc_supply_depot_zones(self)
         self.supply_depot_placement_list: Set[Point2] = temp
         
-        self.corner_depots_possition= [depot1, depot2]
+        self.corner_depots_possition= [depot1, depot2, self.supply_depot_placement_list[2]]
         self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.corner_depots_possition, self.building_list)
 
     async def on_step(self, iteration: int):
@@ -100,8 +99,8 @@ class Jimmy(BotAI):
             blue = Point3((255, 0, 0))
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             # properly send each item in the build order for tech buildings
-            draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list, .75)
-            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list, 1.25)
+            draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list, 1)
+            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list, 1.5)
 
         # We want to be able to quickly respond to enemy attack:
         # This is like the limbic system, it can quickly take over if we are in danger
@@ -148,9 +147,7 @@ async def build_next(self: BotAI, buildrequest, cc_managers, sd_pos, tech_pos):
     if self.debug:
         timer = int(self.time)
         realtime = datetime.timedelta(seconds=timer)
-        print(
-            #f"Name: {unit_name} | Supply Target: {supplyRequired} | Supply Used: {self.supply_used} | BO Target Time: {gametime} | Game Time: {realtime}"
-        )
+        #print(f"Name: {unit_name} | Supply Target: {supplyRequired} | Supply Used: {self.supply_used} | BO Target Time: {gametime} | Game Time: {realtime})
 
     if unitType == "action":
         # skip actions

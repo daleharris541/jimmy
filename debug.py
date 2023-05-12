@@ -94,21 +94,20 @@ def calc_supply_depot_zones(self: BotAI):
 
     # Since this is fixed, we just need to add the ramp depots first for build order
     for depot in self.main_base_ramp.corner_depots:
-        supply_depot_placement_list.append(depot.position)
-    # Determine if we are on top or bottom
-    # build 5 centered on CC, then match last one and build 5 perpendicular
+        supply_depot_placement_list.append(depot)
+    
+    # direction vector to point from enemy back to our CC
+    # Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
     direction_vector = get_direction_vector(
         self, self.enemy_start_locations[0], self.start_location
     )
-    #distance = get_distance(self, self.start_location, self.enemy_start_locations[0])
-    # print(f"Enemy to Me Vector: {direction_vector}") #Output Example: Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
     x = round(self.start_location.x)
     y = round(self.start_location.y)
     # corner is an important point since it is our Corner that is in between us and enemy location
     # we can always add to the multiplier to increase the offset
-    corner = Point2((x + (xdirection * -5), y + (ydirection * -5)))
+    corner = Point2((x + (xdirection * -5), y + (ydirection * -5))).rounded
     # supply_depot_placement_list.append(corner)
     # we will now calculate 10 total placement locations, then populate it all into the list
     # supply depots are 2x2 units
@@ -123,7 +122,7 @@ def calc_supply_depot_zones(self: BotAI):
     return supply_depot_placement_list, depot1, depot2
 
 
-def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_list: list,):
+def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_list: list):
     """
     This function will create a list of suitable locations for tech buildings
     It will return multiple sets of coordinates in a list
@@ -138,6 +137,8 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     starting_height = self.get_terrain_z_height(self.start_location)
     first_depot = corner_supply_depots[0]
     last_depot = corner_supply_depots[1]
+    corner_depot = corner_supply_depots[2]
+
     corner_supply_depot: Point2
     if first_depot.y > last_depot.y:
         if direction_vector.y > 0:
@@ -151,29 +152,23 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
             corner_supply_depot = first_depot
 
     #corner_supply_depot = corner_supply_depots[0]
+    
     print(f"selected depot {corner_supply_depot}")
 
     # #tech buildings footprint 5x5 with 2x2 "lane"
     # #Only placement in columns with buildings for addon purposes
-    # #TODO #21 Barracks are 3x3 + addon =
-    # spacing represents the building + addon + 2x2 for a "lane"
-    # can't do a ton of rows, but can do a lot stacked along Y axis (column)
-    # so spacing is how far the distance will be between 5 buildings stacked in a column
-    # if we send the build order queue to this function, we can swap out the BARRACKS for actual building
-    # Then it can iterate through and properly place our build order items if structure in the matrix
-    # properly allowing for size and custom making the grid match the build order and just increment the build order step
+    # #TODO #21 Barracks are 3x3 + addon 1x1 + 1x1 for lane of traffic
     spacing = 5
-    i = 0
     vector_y = round(direction_vector.y)
-    vector_x = direction_vector.x
+    vector_x = round(direction_vector.x)
     vg_positions = create_vespene_geyser_points(self)
-    print(vg_positions)
+    #print(vg_positions)
+
     for offset in range(0, spacing * spacing, spacing):
-        for axis_y in range(corner_supply_depot.y+(3*round(vector_y)), corner_supply_depot.y + (30 * (round(vector_y))), 3 * (round(vector_y)),):
+        for axis_y in range(corner_supply_depot.y+(3*vector_y), corner_supply_depot.y + (18 * vector_y), 3 * vector_y):
             temp_point = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (temp_point in vg_positions or invalid_positions(self, temp_point, starting_height)):
                 tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * vector_x), axis_y,)))
-                i += 1
     return tech_buildings_placement_list
 
 def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
@@ -189,28 +184,37 @@ def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -
     
     for corner_y in range(0,6,3):
                 for corner_x in range(0, 6, 3):
-                    if not (self.in_placement_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and
+                    print(f"Point {Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))} is on pathing grid: {self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))]}")
+                    if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
                             self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
                         return True   
     return False
+    # for corner_y in range(0,6,3):
+    #             for corner_x in range(0, 6, 3):
+    #                 print(f"Point {Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))} is on pathing grid: {self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))]}")
+    #                 if not (self.in_pathing_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and
+    #                         self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
+    #                     return True   
+    # return False
 
-def create_vespene_geyser_points(self: BotAI, ):
+def create_vespene_geyser_points(self: BotAI):
     """
-    ## blah blah blah  \n
+    ## Creates a set of points representing Vespene Geysers  \n
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+    - Returns a list of positions that will be collision checks
+    - For building our tech building layout
     """
     controlled_vespene_geysers: Set[Point2] = []
     for vespene_geyser in self.vespene_geyser:
         controlled_vespene_geysers
         if self.townhalls.first.distance_to(vespene_geyser) < 8:
             controlled_vespene_geysers.append(vespene_geyser.position.rounded)
-    vg_position_collision: Point2 = []
+    vg_position_collisions: Point2 = []
     for g in controlled_vespene_geysers:
         for x in range(g.x-1,g.x+3,1):
             for y in range(g.y-1,g.y+3,1):
-                vg_position_collision.append(((x,y)))
-    return vg_position_collision
+                vg_position_collisions.append(((x,y)))
+    return vg_position_collisions
 
 def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
     """
@@ -220,9 +224,7 @@ def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
     This can be useful for attacking as well and can get vectors all the way to enemy position, etc
     """
     direction_vector = point1.direction_vector(point2)
-    point1.distance_to(point2)
     return direction_vector
-
 
 def get_distance(self: BotAI, point1: Point2, point2: Point2):
     """
@@ -231,5 +233,6 @@ def get_distance(self: BotAI, point1: Point2, point2: Point2):
     Example Returns 115.5 which can be useful to determine how long until enemy shows up at doorstep
     This can be useful for prioritizing defending against enemy attacks
     """
+
     distance = point1.distance_to_point2(point2)
     return distance
