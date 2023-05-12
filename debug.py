@@ -1,9 +1,9 @@
 from sc2.bot_ai import BotAI
+from sc2.units import Units
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2, Point3
 from typing import FrozenSet, Set
 from loguru import logger
-from managers.CC_Manager import CC_Manager
 
 
 def label_unit(self: BotAI, unit, text):
@@ -100,7 +100,7 @@ def calc_supply_depot_zones(self: BotAI):
     direction_vector = get_direction_vector(
         self, self.enemy_start_locations[0], self.start_location
     )
-    distance = get_distance(self, self.start_location, self.enemy_start_locations[0])
+    #distance = get_distance(self, self.start_location, self.enemy_start_locations[0])
     # print(f"Enemy to Me Vector: {direction_vector}") #Output Example: Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
@@ -166,34 +166,51 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     i = 0
     vector_y = round(direction_vector.y)
     vector_x = direction_vector.x
+    vg_positions = create_vespene_geyser_points(self)
+    print(vg_positions)
     for offset in range(0, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(3*round(vector_y)), corner_supply_depot.y + (30 * (round(vector_y))), 3 * (round(vector_y)),):
-            bad_placement = False
             temp_point = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
-            bad_placement = check_placement_tech_buildings(self, temp_point, starting_height)         
-            if bad_placement == False:
+            if not (temp_point in vg_positions or invalid_positions(self, temp_point, starting_height)):
                 tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * vector_x), axis_y,)))
                 i += 1
-    #print(tech_buildings_placement_list)
     return tech_buildings_placement_list
 
-def check_placement_tech_buildings(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
+def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
     """
     ## Given two Point2 (x,y) locations, validate 3x3 grid for placement \n
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Example: check_placement_tech_buildings(self, temp_point, starting_height)
-    \n
+    Example: check_placement_tech_buildings(self, temp_point, starting_height)\n
     1. Checks 0,0, 0,3, 3,0, 3,3 from original point\n
     1. If any point is not placeable, returns True\n
     1. If all 4 corners of building pass check, returns False\n
     1. This is how we are making the grid for tech buildings\n
     """
-    gas = CC_Manager.get_vespene_geysers
+    
     for corner_y in range(0,6,3):
                 for corner_x in range(0, 6, 3):
-                    if not (self.in_placement_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
+                    if not (self.in_placement_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and
+                            self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
                         return True   
     return False
+
+def create_vespene_geyser_points(self: BotAI, ):
+    """
+    ## blah blah blah  \n
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    """
+    controlled_vespene_geysers: Set[Point2] = []
+    for vespene_geyser in self.vespene_geyser:
+        controlled_vespene_geysers
+        if self.townhalls.first.distance_to(vespene_geyser) < 8:
+            controlled_vespene_geysers.append(vespene_geyser.position.rounded)
+    vg_position_collision: Point2 = []
+    for g in controlled_vespene_geysers:
+        for x in range(g.x-1,g.x+3,1):
+            for y in range(g.y-1,g.y+3,1):
+                vg_position_collision.append(((x,y)))
+    return vg_position_collision
 
 def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
     """
