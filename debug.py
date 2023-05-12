@@ -165,22 +165,35 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     # properly allowing for size and custom making the grid match the build order and just increment the build order step
     spacing = 5
     i = 0
+    vector_y = round(direction_vector.y)
+    vector_x = direction_vector.x
     for offset in range(0, spacing * spacing, spacing):
-        for axis_y in range(corner_supply_depot.y+(3*round(direction_vector.y)), corner_supply_depot.y + (30 * (round(direction_vector.y))), 3 * (round(direction_vector.y)),):
+        for axis_y in range(corner_supply_depot.y+(3*round(vector_y)), corner_supply_depot.y + (30 * (round(vector_y))), 3 * (round(vector_y)),):
             bad_placement = False
-            for corner_y in range(0,6,3):
-                for corner_x in range(0, 6, 3):
-                    if self.in_placement_grid(Point2(((corner_supply_depot.x + (offset * direction_vector.x))+corner_x, axis_y + corner_y))) and self.get_terrain_z_height(Point2(((corner_supply_depot.x + (offset * direction_vector.x))+corner_x, axis_y + corner_y))) == starting_height:
-                        print(f"Good = ({corner_x},{corner_y}")
-                    else:
-                        print(f"Bad = ({corner_x},{corner_y}")
-                        bad_placement = True
+            temp_point = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
+            bad_placement = check_placement_tech_buildings(self, temp_point, starting_height)         
             if bad_placement == False:
-                tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * direction_vector.x), axis_y,)))
+                tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * vector_x), axis_y,)))
                 i += 1
     #print(tech_buildings_placement_list)
     return tech_buildings_placement_list
 
+def check_placement_tech_buildings(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
+    """
+    ## Given two Point2 (x,y) locations, validate 3x3 grid for placement \n
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Example: check_placement_tech_buildings(self, temp_point, starting_height)
+    \n
+    1. Checks 0,0, 0,3, 3,0, 3,3 from original point\n
+    1. If any point is not placeable, returns True\n
+    1. If all 4 corners of building pass check, returns False\n
+    1. This is how we are making the grid for tech buildings\n
+    """
+    for corner_y in range(0,6,3):
+                for corner_x in range(0, 6, 3):
+                    if not (self.in_placement_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
+                        return True   
+    return False
 
 def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
     """
