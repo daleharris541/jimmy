@@ -3,6 +3,7 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2, Point3
 from typing import FrozenSet, Set
 from loguru import logger
+from managers.CC_Manager import CC_Manager
 
 
 def label_unit(self: BotAI, unit, text):
@@ -30,8 +31,6 @@ def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels
     We only do this once on start and use that list
     for all future placement until it's empty
     """
-    # print(f"Count of points being sent: {len(points)}")
-    # print(f"Length of buildings list {len(labels)}")
     counter = 0
     for p in points:
         p = Point2(p)
@@ -46,7 +45,7 @@ def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels
             )
             counter += 1
         self.client.debug_box2_out(
-            pos + Point2((half_vertex_length,half_vertex_length)), half_vertex_length=half_vertex_length, color=color
+            pos, half_vertex_length=half_vertex_length, color=color
         )
 
     # self.client.debug_box2_out((self.start_location,self.get_terrain_z_height(self.start_location)), half_vertex_length=2.5, color=green)
@@ -189,6 +188,7 @@ def check_placement_tech_buildings(self: BotAI, temp_point: Point2, starting_hei
     1. If all 4 corners of building pass check, returns False\n
     1. This is how we are making the grid for tech buildings\n
     """
+    gas = CC_Manager.get_vespene_geysers
     for corner_y in range(0,6,3):
                 for corner_x in range(0, 6, 3):
                     if not (self.in_placement_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
