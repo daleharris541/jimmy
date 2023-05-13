@@ -4,7 +4,7 @@
 Bot created by R3KK3R (US) and Syes (DE)
 
 Overall Bot Structure:
-![Overall Bot Structure](https://github.com/daleharris541/jimmy/blob/main/tools/Strategy%20and%20Planning.svg "Bot Strategy and Planning")
+![Overall Bot Structure](https://github.com/daleharris541/jimmy/blob/main/tools/Bot%20Architecture.svg "Bot Strategy and Planning")
 
 _TODO List:_
 Priority List
