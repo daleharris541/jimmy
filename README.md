@@ -7,21 +7,25 @@ Overall Bot Structure:
 ![Overall Bot Structure](https://github.com/daleharris541/jimmy/blob/main/tools/Strategy%20and%20Planning.svg "Bot Strategy and Planning")
 
 _TODO List:_
-- Remove an SCV from 2nd refinery
-- Move marines to ramp
-- Create build order/Refine Build order
-- Determine Game Timing (need fixed unit, better off supply with build checks?)
-- Scount Enemy Tech
+Priority List
+- Perfect Tech building placement
+- Build Order Manager
+- Army Unit Trainer/Manager
+- Micro Manager (perform commands for combat units on battlefield)
+- Intelligence Analyzer Class - Interrupt build to counter enemy units scouted
+
+Secondary List
+- Scout Enemy Tech
 - Reaper Harass
-- Macro scount and continue build
-- All in Scout and react
+- Macro scout and continue build
+- All in detected by scouts and react
+- Defend against Probe/SCV/Drone Rush
 - Raven to follow with army to detect mines and invis units
 - Raven to disable Tanks and Colossus
-- Scout for Proxy Rax
-- React to Proxy Rax
-- Orbital Command for Mules and Scans
-- Planetary Fortress on 4th and 5th Exp
-- Marine Doomdrop (2x16) on enemy minerals
-- Determine when enemy will be strongest after upgrades from Terrans are done
-- Push when enemy is weakest/after 1/1 upgrades for bio
-- SCV Scout Placement - outside enemy base or perpendicular to enemy base
+- Scout/React to Proxy Rax
+- Planetary Fortress on 4th and 5th Expo
+- Marine Doomdrop (2x16) - Economic Disruption
+- Medivac/Widow Mine drop into minerals for economic disruption
+- Banshee cloak and harass
+- Determine when enemy will be strongest/weakest (based on race)
+- SCV/Marine/Reaper Scout Placement - outside enemy base or perpendicular to enemy base
