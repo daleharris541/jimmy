@@ -105,12 +105,10 @@ def calc_supply_depot_zones(self: BotAI):
     ydirection = round(direction_vector.y)
     x = round(self.start_location.x)
     y = round(self.start_location.y)
-    # corner is an important point since it is our Corner that is in between us and enemy location
-    # we can always add to the multiplier to increase the offset
-    corner = Point2((x + (xdirection * -5), y + (ydirection * -5))).rounded
+
+    offset_space = -5
+    corner = Point2((x + (xdirection * offset_space), y + (ydirection * offset_space))).rounded
     # supply_depot_placement_list.append(corner)
-    # we will now calculate 10 total placement locations, then populate it all into the list
-    # supply depots are 2x2 units
     # add 9 supply depots to be symmetrical can not do 11 since placement will be rough
     for coordx in range(corner.x, corner.x + (10 * xdirection), 2 * xdirection):
         supply_depot_placement_list.append(Point2((coordx, corner.y)))
@@ -118,9 +116,7 @@ def calc_supply_depot_zones(self: BotAI):
     for coordy in range(corner.y + (-2 * xdirection), corner.y + (10 * ydirection), 2 * ydirection):
         supply_depot_placement_list.append(Point2((corner.x, coordy)))
         depot2 = Point2((corner.x, corner.y + (8 * ydirection)))
-    # print(f"This is the point list before drawing: {supply_depot_placement_list}")
     return supply_depot_placement_list, depot1, depot2
-
 
 def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_list: list):
     """
@@ -133,38 +129,35 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     tech_buildings_placement_list.append(self.main_base_ramp.barracks_in_middle.position)
     # shoot vector towards self.start_location
     direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
-    
-    starting_height = self.get_terrain_z_height(self.start_location)
-    first_depot = corner_supply_depots[0]
-    last_depot = corner_supply_depots[1]
-    corner_depot = corner_supply_depots[2]
-
-    corner_supply_depot: Point2
-    if first_depot.y > last_depot.y:
-        if direction_vector.y > 0:
-            corner_supply_depot = first_depot
-        else:
-            corner_supply_depot = last_depot
-    else:
-        if direction_vector.y > 0:
-            corner_supply_depot = last_depot
-        else:
-            corner_supply_depot = first_depot
-
-    #corner_supply_depot = corner_supply_depots[0]
-    
-    print(f"selected depot {corner_supply_depot}")
-
-    # #tech buildings footprint 5x5 with 2x2 "lane"
-    # #Only placement in columns with buildings for addon purposes
-    # #TODO #21 Barracks are 3x3 + addon 1x1 + 1x1 for lane of traffic
-    spacing = 5
     vector_y = round(direction_vector.y)
     vector_x = round(direction_vector.x)
+
+    starting_height = self.get_terrain_z_height(self.start_location)
+    # first_depot = corner_supply_depots[0]
+    # last_depot = corner_supply_depots[1]
+    corner_supply_depot = corner_supply_depots[2]
+
+    # corner_supply_depot: Point2
+    # if first_depot.y > last_depot.y:
+    #     if direction_vector.y > 0:
+    #         corner_supply_depot = first_depot
+    #     else:
+    #         corner_supply_depot = last_depot
+    # else:
+    #     if direction_vector.y > 0:
+    #         corner_supply_depot = last_depot
+    #     else:
+    #         corner_supply_depot = first_depot
+    print(f"selected depot {corner_supply_depot}")
+
+    # #tech buildings are typically 3x3, addon is 1x1
+    # #TODO #21 Barracks are 3x3 + addon 1x1 + 1x1 for lane of traffic
+    spacing = 5
+ 
     vg_positions = create_vespene_geyser_points(self)
     #print(vg_positions)
 
-    for offset in range(0, spacing * spacing, spacing):
+    for offset in range(1*spacing*vector_x, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(3*vector_y), corner_supply_depot.y + (18 * vector_y), 3 * vector_y):
             temp_point = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (temp_point in vg_positions or invalid_positions(self, temp_point, starting_height)):

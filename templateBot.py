@@ -187,7 +187,7 @@ async def build_next(self: BotAI, buildrequest, cc_managers, sd_pos, tech_pos):
 
 def main():
     run_game(
-        maps.get("DeathAuraLE"),
+        maps.get("AcropolisLE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
         realtime=True,
     )
