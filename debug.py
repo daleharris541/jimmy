@@ -50,6 +50,8 @@ def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels
 
     # self.client.debug_box2_out((self.start_location,self.get_terrain_z_height(self.start_location)), half_vertex_length=2.5, color=green)
 
+def draw_green_circles(self: BotAI, circle_intersection):
+    self.client.debug_sphere_out(circle_intersection, 5)
 
 def draw_expansions(self: BotAI):
     green = Point3((0, 255, 0))
@@ -155,14 +157,38 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     spacing = 5
  
     vg_positions = create_vespene_geyser_points(self)
-    #print(vg_positions)
-
-    for offset in range(1*spacing*vector_x, spacing * spacing, spacing):
+    
+    for offset in range(-3*spacing*vector_x, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(3*vector_y), corner_supply_depot.y + (18 * vector_y), 3 * vector_y):
             temp_point = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (temp_point in vg_positions or invalid_positions(self, temp_point, starting_height)):
-                tech_buildings_placement_list.append(Point2((corner_supply_depot.x + (offset * vector_x), axis_y,)))
+                tech_buildings_placement_list.append(temp_point)
     return tech_buildings_placement_list
+
+def calc_tech_building_radius(self: BotAI, corner_supply_depots: list):
+    """
+    ## Trying Different Placement Idea \n
+    """
+    tech_buildings_placement_list: Set[Point2] = []
+    tech_buildings_placement_list.append(self.main_base_ramp.barracks_in_middle.position)
+    # shoot vector towards self.start_location
+    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
+    vector_y = round(direction_vector.y)
+    vector_x = round(direction_vector.x)
+
+    starting_height = self.get_terrain_z_height(self.start_location)
+    # first_depot = corner_supply_depots[0]
+    # last_depot = corner_supply_depots[1]
+    corner_supply_depot = corner_supply_depots[2]
+    townhall = self.townhalls.first.position.rounded
+    circle_intersection = townhall.circle_intersection(self.main_base_ramp.top_center,15)
+    self.client.debug_sphere_out(townhall.to3,15)
+    self.client.debug_sphere_out(self.main_base_ramp.top_center.to3, 15)
+    print("Here are the circle Intersections Return Value")
+    print(circle_intersection)
+    for circle in circle_intersection:
+        self.client.debug_sphere_out(circle.to3,12)
+
 
 def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
     """
