@@ -1,10 +1,6 @@
 from sc2.bot_ai import BotAI
-from sc2.units import Units
-from sc2.ids.ability_id import AbilityId
-from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2, Point3
-from typing import FrozenSet, Set
-from loguru import logger
+from typing import Set
 
 
 def label_unit(self: BotAI, unit, text):
@@ -154,41 +150,7 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
             vpoint = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (vpoint in vg_positions or invalid_positions(self, vpoint, starting_height)):
                 tech_buildings_placement_list.append(vpoint)
-    print(tech_buildings_placement_list)
-    print(len(tech_buildings_placement_list))
-    for placement in tech_buildings_placement_list:
-        if self.can_place_single(UnitTypeId.BARRACKS,placement):
-            print(f"I can place {placement}")
-        else:
-            print(f"I can't place {placement}")
-    #possible = [r , p for r , p in zip(results, tech_buildings_placement_list) if r]
-    #print(f"{len(possible)} buildings possible out of {len(results)} points Dale mapped out")
     return tech_buildings_placement_list
-
-def calc_tech_building_radius(self: BotAI, corner_supply_depots: list):
-    """
-    ## Trying Different Placement Idea \n
-    """
-    tech_buildings_placement_list: Set[Point2] = []
-    tech_buildings_placement_list.append(self.main_base_ramp.barracks_in_middle.position)
-    # shoot vector towards self.start_location
-    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
-    vector_y = round(direction_vector.y)
-    vector_x = round(direction_vector.x)
-
-    starting_height = self.get_terrain_z_height(self.start_location)
-    # first_depot = corner_supply_depots[0]
-    # last_depot = corner_supply_depots[1]
-    corner_supply_depot = corner_supply_depots[2]
-    townhall = self.townhalls.first.position.rounded
-    circle_intersection = townhall.circle_intersection(self.main_base_ramp.top_center,15)
-    self.client.debug_sphere_out(townhall.to3,15)
-    self.client.debug_sphere_out(self.main_base_ramp.top_center.to3, 15)
-    print("Here are the circle Intersections Return Value")
-    print(circle_intersection)
-    for circle in circle_intersection:
-        self.client.debug_sphere_out(circle.to3,12)
-
 
 def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
     """

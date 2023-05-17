@@ -24,14 +24,9 @@ from managers.UpgradeManager import research_upgrade
 from managers.ControlHelper import idle_workers
 
 from debug import (
-    label_unit,
     draw_building_points,
-    draw_expansions,
-    get_direction_vector,
-    get_distance,
     calc_supply_depot_zones,
     calc_tech_building_zones,
-    calc_tech_building_radius,
 )
 
 # https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
@@ -102,9 +97,6 @@ class Jimmy(BotAI):
             # properly send each item in the build order for tech buildings
             draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list, 1)
             draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list, 1.5)
-            
-
-            #calc_tech_building_radius(self, self.corner_depots_possition)
 
         # We want to be able to quickly respond to enemy attack:
         # This is like the limbic system, it can quickly take over if we are in danger
