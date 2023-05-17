@@ -1,5 +1,6 @@
 from sc2.bot_ai import BotAI
 from sc2.units import Units
+from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2, Point3
 from typing import FrozenSet, Set
@@ -138,31 +139,30 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     # first_depot = corner_supply_depots[0]
     # last_depot = corner_supply_depots[1]
     corner_supply_depot = corner_supply_depots[2]
-
-    # corner_supply_depot: Point2
-    # if first_depot.y > last_depot.y:
-    #     if direction_vector.y > 0:
-    #         corner_supply_depot = first_depot
-    #     else:
-    #         corner_supply_depot = last_depot
-    # else:
-    #     if direction_vector.y > 0:
-    #         corner_supply_depot = last_depot
-    #     else:
-    #         corner_supply_depot = first_depot
-    print(f"selected depot {corner_supply_depot}")
-
-    # #tech buildings are typically 3x3, addon is 1x1
     # #TODO #21 Barracks are 3x3 + addon 1x1 + 1x1 for lane of traffic
     spacing = 5
  
     vg_positions = create_vespene_geyser_points(self)
-    
-    for offset in range(-3*spacing*vector_x, spacing * spacing, spacing):
+    for offset in range(0, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(3*vector_y), corner_supply_depot.y + (18 * vector_y), 3 * vector_y):
-            temp_point = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
-            if not (temp_point in vg_positions or invalid_positions(self, temp_point, starting_height)):
-                tech_buildings_placement_list.append(temp_point)
+            hpoint = Point2(((corner_supply_depot.x + (-offset * vector_x)), axis_y))
+            if not (hpoint in vg_positions or invalid_positions(self, hpoint, starting_height)):
+                tech_buildings_placement_list.append(hpoint)
+    
+    for offset in range(5, spacing * spacing, spacing):
+        for axis_y in range(corner_supply_depot.y+(-3*vector_y), corner_supply_depot.y + (-18 * vector_y), -3 * vector_y):
+            vpoint = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
+            if not (vpoint in vg_positions or invalid_positions(self, vpoint, starting_height)):
+                tech_buildings_placement_list.append(vpoint)
+    print(tech_buildings_placement_list)
+    print(len(tech_buildings_placement_list))
+    for placement in tech_buildings_placement_list:
+        if self.can_place_single(UnitTypeId.BARRACKS,placement):
+            print(f"I can place {placement}")
+        else:
+            print(f"I can't place {placement}")
+    #possible = [r , p for r , p in zip(results, tech_buildings_placement_list) if r]
+    #print(f"{len(possible)} buildings possible out of {len(results)} points Dale mapped out")
     return tech_buildings_placement_list
 
 def calc_tech_building_radius(self: BotAI, corner_supply_depots: list):
@@ -203,18 +203,10 @@ def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -
     
     for corner_y in range(0,6,3):
                 for corner_x in range(0, 6, 3):
-                    print(f"Point {Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))} is on pathing grid: {self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))]}")
                     if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
                             self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
                         return True   
     return False
-    # for corner_y in range(0,6,3):
-    #             for corner_x in range(0, 6, 3):
-    #                 print(f"Point {Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))} is on pathing grid: {self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))]}")
-    #                 if not (self.in_pathing_grid(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) and
-    #                         self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
-    #                     return True   
-    # return False
 
 def create_vespene_geyser_points(self: BotAI):
     """
