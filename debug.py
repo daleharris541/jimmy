@@ -162,9 +162,9 @@ def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -
     1. If all 4 corners of building pass check, returns False\n
     1. This is how we are making the grid for tech buildings\n
     """
-    
-    for corner_y in range(0,6,3):
-                for corner_x in range(0, 6, 3):
+    pointrange = [-2,2]
+    for corner_y in pointrange:
+                for corner_x in pointrange:
                     if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
                             self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
                         return True   
