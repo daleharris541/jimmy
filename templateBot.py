@@ -62,7 +62,7 @@ class Jimmy(BotAI):
         # The first barracks is automatic, so my choice is to add additional entry to building list to match
 
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
-        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2])
+        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2], self.building_list)
 
     async def on_step(self, iteration: int):
         # Find all Command Centers
@@ -90,8 +90,8 @@ class Jimmy(BotAI):
             blue = Point3((255, 0, 0))
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             # properly send each item in the build order for tech buildings
-            #draw_building_points(self, self.supply_depot_placement_list, green, self.supply_depot_placement_list)
-            #draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list)
+            draw_building_points(self, self.supply_depot_placement_list, green, labels="DEPOT")
+            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list)
 
         # We want to be able to quickly respond to enemy attack:
         # This is like the limbic system, it can quickly take over if we are in danger

@@ -35,7 +35,7 @@ def draw_building_points(self: BotAI, points: Set[Point2], color: Point3, labels
         pos = Point3((p.x, p.y, h2))
         if len(labels) > 1:
             self.client.debug_text_world(
-                text=str(f"{p.x-half_vertex_length},{p.y-half_vertex_length}"),
+                text=str(f"{p.x},{p.y}"),
                 pos=pos,
                 color=Point3((0, 0, 255)),
                 size=16,
@@ -93,6 +93,7 @@ def calc_supply_depot_zones(self: BotAI):
 
     # Since this is fixed, we just need to add the ramp depots first for build order
     for depot in self.main_base_ramp.corner_depots:
+        print(f"adding {depot}")
         supply_depot_placement_list.append(depot)
     
     # direction vector to point from enemy back to our CC
@@ -106,7 +107,7 @@ def calc_supply_depot_zones(self: BotAI):
     y = round(self.start_location.y)
 
     offset_space = -5
-    corner = Point2((x + (xdirection * offset_space), y + (ydirection * offset_space))).rounded
+    corner = Point2((x + (xdirection * offset_space), y + (ydirection * offset_space)))
     # supply_depot_placement_list.append(corner)
     # add 9 supply depots to be symmetrical can not do 11 since placement will be rough
     for coordx in range(corner.x, corner.x + (10 * xdirection), 2 * xdirection):
@@ -115,9 +116,9 @@ def calc_supply_depot_zones(self: BotAI):
     for coordy in range(corner.y + (-2 * xdirection), corner.y + (10 * ydirection), 2 * ydirection):
         supply_depot_placement_list.append(Point2((corner.x, coordy)))
         depot2 = Point2((corner.x, corner.y + (8 * ydirection)))
-    return supply_depot_placement_list, depot1, depot2
+    return supply_depot_placement_list
 
-def calc_tech_building_zones(self: BotAI, corner_supply_depot):
+def calc_tech_building_zones(self: BotAI, corner_supply_depot: list, building_list: list):
     """
     This function will create a list of suitable locations for tech buildings
     It will return multiple sets of coordinates in a list
@@ -127,14 +128,13 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depot):
     tech_buildings_placement_list: Set[Point2] = []
     tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement)
     # shoot vector towards self.start_location
-    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
+    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position)
     vector_y = round(direction_vector.y)
     vector_x = round(direction_vector.x)
 
     starting_height = self.get_terrain_z_height(self.start_location)
-    # first_depot = corner_supply_depots[0]
-    # last_depot = corner_supply_depots[1]
-    spacing = 5
+
+    spacing = 6
  
     vg_positions = create_vespene_geyser_points(self)
     for offset in range(0, spacing * spacing, spacing):
@@ -143,7 +143,7 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depot):
             if not (hpoint in vg_positions or invalid_positions(self, hpoint, starting_height)):
                 tech_buildings_placement_list.append(hpoint)
     
-    for offset in range(5, spacing * spacing, spacing):
+    for offset in range(spacing, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(-3*vector_y), corner_supply_depot.y + (-18 * vector_y), -3 * vector_y):
             vpoint = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (vpoint in vg_positions or invalid_positions(self, vpoint, starting_height)):
@@ -152,16 +152,15 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depot):
 
 def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
     """
-    ## Given two Point2 (x,y) locations, validate 4x4 building for placement \n
+    ## Given two Point2 (x,y) locations, validate 3x3 grid for placement \n
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Example: check_placement_tech_buildings(self, temp_point, starting_height)\n
-    1. Checks 4 corners in a 4x4 grid from original point\n
+    1. Checks 0,0, 0,3, 3,0, 3,3 from original point\n
     1. If any point is not placeable, returns True\n
-    1. If all 4 corners of building "pass" check with same height as townhall, returns False\n
-    1. This is how we are making the grid for tech buildings not fall off the edge\n
+    1. If all 4 corners of building pass check, returns False\n
+    1. This is how we are making the grid for tech buildings\n
     """
-    # pointrange = [-2,2] #4x4
-    # #pointrange = [-1.5,1.5] #this is invalid because we can't use .5 - maybe we can actually determine placement by rounding?
+    # pointrange = [-2,2]
     # for corner_y in pointrange:
     #             for corner_x in pointrange:
     #                 if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
