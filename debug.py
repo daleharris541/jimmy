@@ -117,7 +117,7 @@ def calc_supply_depot_zones(self: BotAI):
         depot2 = Point2((corner.x, corner.y + (8 * ydirection)))
     return supply_depot_placement_list, depot1, depot2
 
-def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_list: list):
+def calc_tech_building_zones(self: BotAI, corner_supply_depot):
     """
     This function will create a list of suitable locations for tech buildings
     It will return multiple sets of coordinates in a list
@@ -125,7 +125,7 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     for all future placement until it's empty
     """
     tech_buildings_placement_list: Set[Point2] = []
-    tech_buildings_placement_list.append(self.main_base_ramp.barracks_in_middle.position)
+    tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement)
     # shoot vector towards self.start_location
     direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position).rounded
     vector_y = round(direction_vector.y)
@@ -134,8 +134,6 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
     starting_height = self.get_terrain_z_height(self.start_location)
     # first_depot = corner_supply_depots[0]
     # last_depot = corner_supply_depots[1]
-    corner_supply_depot = corner_supply_depots[2]
-    # #TODO #21 Barracks are 3x3 + addon 1x1 + 1x1 for lane of traffic
     spacing = 5
  
     vg_positions = create_vespene_geyser_points(self)
@@ -154,20 +152,28 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depots: list, building_l
 
 def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:
     """
-    ## Given two Point2 (x,y) locations, validate 3x3 grid for placement \n
+    ## Given two Point2 (x,y) locations, validate 4x4 building for placement \n
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Example: check_placement_tech_buildings(self, temp_point, starting_height)\n
-    1. Checks 0,0, 0,3, 3,0, 3,3 from original point\n
+    1. Checks 4 corners in a 4x4 grid from original point\n
     1. If any point is not placeable, returns True\n
-    1. If all 4 corners of building pass check, returns False\n
-    1. This is how we are making the grid for tech buildings\n
+    1. If all 4 corners of building "pass" check with same height as townhall, returns False\n
+    1. This is how we are making the grid for tech buildings not fall off the edge\n
     """
-    pointrange = [-2,2]
-    for corner_y in pointrange:
-                for corner_x in pointrange:
-                    if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
-                            self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
-                        return True   
+    # pointrange = [-2,2] #4x4
+    # #pointrange = [-1.5,1.5] #this is invalid because we can't use .5 - maybe we can actually determine placement by rounding?
+    # for corner_y in pointrange:
+    #             for corner_x in pointrange:
+    #                 if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
+    #                         self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
+    #                     return True   
+    # return False
+
+    corners = temp_point.neighbors4
+    for point in corners:
+        point = Point2((point))
+        if not (self.game_info.pathing_grid[point] == 1 and self.get_terrain_z_height(point) == starting_height):
+            return True
     return False
 
 def create_vespene_geyser_points(self: BotAI):
