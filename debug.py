@@ -93,7 +93,6 @@ def calc_supply_depot_zones(self: BotAI):
 
     # Since this is fixed, we just need to add the ramp depots first for build order
     for depot in self.main_base_ramp.corner_depots:
-        print(f"adding {depot}")
         supply_depot_placement_list.append(depot)
     
     # direction vector to point from enemy back to our CC
@@ -103,19 +102,18 @@ def calc_supply_depot_zones(self: BotAI):
     )
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
-    x = round(self.start_location.x)
-    y = round(self.start_location.y)
+    x = self.start_location.x+2.5
+    y = self.start_location.y-2.5
 
-    offset_space = -5
+    offset_space = -1 #this is the offset around the command center
     corner = Point2((x + (xdirection * offset_space), y + (ydirection * offset_space)))
-    # supply_depot_placement_list.append(corner)
     # add 9 supply depots to be symmetrical can not do 11 since placement will be rough
-    for coordx in range(corner.x, corner.x + (10 * xdirection), 2 * xdirection):
-        supply_depot_placement_list.append(Point2((coordx, corner.y)))
-        depot1 = Point2((corner.x + (8 * xdirection),corner.y))
-    for coordy in range(corner.y + (-2 * xdirection), corner.y + (10 * ydirection), 2 * ydirection):
-        supply_depot_placement_list.append(Point2((corner.x, coordy)))
-        depot2 = Point2((corner.x, corner.y + (8 * ydirection)))
+    cornerx = int(corner.x)
+    cornery = int(corner.y)
+    for coordx in range(cornerx, cornerx + (10 * xdirection), 2 * xdirection):
+        supply_depot_placement_list.append(Point2((coordx, cornery)))
+    for coordy in range(cornery + (-2 * xdirection), cornery + (10 * ydirection), 2 * ydirection):
+        supply_depot_placement_list.append(Point2((cornerx, coordy)))
     return supply_depot_placement_list
 
 def calc_tech_building_zones(self: BotAI, corner_supply_depot: list, building_list: list):
