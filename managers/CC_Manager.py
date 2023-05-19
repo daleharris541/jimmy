@@ -44,9 +44,9 @@ class CC_Manager:
         return controlled_worker
 
     async def train_worker(self, worker_pool):
-        """This function trains workers in the Comand Center"""
-        if len(self.bot.workers) < worker_pool and self.cc.is_idle and self.bot.can_afford(UnitTypeId.SCV):
-            self.cc.train(UnitTypeId.SCV)
+        """This function trains workers in the Command Center"""
+        if len(self.bot.workers) < worker_pool:
+            self.cc.train(UnitTypeId.SCV,queue=True)
 
 ### Functions for Minerals   
     def get_mineral_fields(self):

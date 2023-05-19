@@ -8,7 +8,7 @@ from typing import FrozenSet, Set
 
 class ConstructionManager:
 
-    def __init__(self, bot: BotAI, build_order, depot_positions, building_positions):
+    def __init__(self, bot: BotAI, build_order, depot_positions: Set[Point2], building_positions: Set[Point2]):
         self.bot = bot
         self.build_order = build_order
         self.depot_positions = depot_positions
@@ -23,9 +23,15 @@ class ConstructionManager:
         if order[0] == 'REFINERY' or order[0] == 'ORBITALCOMMAND':
             pass
         elif order[0] == 'SUPPLYDEPOT':
-            await self.build_structure(order[0], self.depot_positions)
+            await self.build_structure(order[0], self.depot_positions[0])
+            self.depot_positions.pop(0)
+        elif ("REACTOR") in order[0] or ("TECHLAB") in order[0]:
+            await self.build_addon(order[0])
+        elif order[0] == 'COMMANDCENTER':
+            await self.build_structure(order[0], self.bot.expansion_locations_list[3])
         else:
-            await self.build_structure(order[0], self.building_positions)
+            await self.build_structure(order[0], self.building_positions[0])
+            self.building_positions.pop(0)
 
     #construction order
     async def build_structure(self, unit_name, pos=None):
@@ -35,7 +41,8 @@ class ConstructionManager:
         It returns True/False to identify whether it executed or not
         This allows multiple attempts to build without skipping
         """
-        if (await self.bot.build(UnitTypeId[unit_name], pos[0])):
+        print(f"building {unit_name} at {pos}")
+        if (await self.bot.build(UnitTypeId[unit_name], pos)):
             return True
 
 
@@ -46,11 +53,11 @@ class ConstructionManager:
         It returns True/False to identify whether it executed or not
         """
         abilityID = ''
-        if unit_name[:8] == 'BARRACKS':
-            if unit_name[-7:] == 'TECHLAB':
-                abilityID = 'BUILD_TECHLAB_BARRACKS'
-            elif unit_name[-7:] == 'REACTOR':
+        if unit_name[:7] == 'BARRACK':
+            if unit_name[-7:] == 'REACTOR':
                 abilityID = 'BUILD_REACTOR_BARRACKS'
+            elif unit_name[-7:] == 'TECHLAB':
+                abilityID = 'BUILD_TECHLAB_BARRACKS'
 
         elif unit_name[:7] == 'FACTORY':
             if unit_name[-7:] == 'REACTOR':

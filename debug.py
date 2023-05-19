@@ -102,8 +102,8 @@ def calc_supply_depot_zones(self: BotAI):
     )
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
-    x = self.start_location.x+2.5
-    y = self.start_location.y-2.5
+    x = self.start_location.x+(-2.5*xdirection)
+    y = self.start_location.y+(-2.5*ydirection)
 
     offset_space = -1 #this is the offset around the command center
     corner = Point2((x + (xdirection * offset_space), y + (ydirection * offset_space)))
@@ -135,13 +135,15 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depot: list, building_li
     spacing = 6
  
     vg_positions = create_vespene_geyser_points(self)
+    #builds left to right/right to left
     for offset in range(0, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(3*vector_y), corner_supply_depot.y + (18 * vector_y), 3 * vector_y):
             hpoint = Point2(((corner_supply_depot.x + (-offset * vector_x)), axis_y))
             if not (hpoint in vg_positions or invalid_positions(self, hpoint, starting_height)):
                 tech_buildings_placement_list.append(hpoint)
     
-    for offset in range(spacing, spacing * spacing, spacing):
+    #builds bottom to top/top to bottom
+    for offset in range(3, spacing * spacing, spacing):
         for axis_y in range(corner_supply_depot.y+(-3*vector_y), corner_supply_depot.y + (-18 * vector_y), -3 * vector_y):
             vpoint = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (vpoint in vg_positions or invalid_positions(self, vpoint, starting_height)):

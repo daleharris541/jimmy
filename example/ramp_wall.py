@@ -7,7 +7,7 @@ from loguru import logger
 from sc2 import maps
 from sc2.bot_ai import BotAI
 from sc2.data import Difficulty, Race
-from sc2.ids.ability_id import AbiityId
+from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.main import run_game
 from sc2.player import Bot, Computer
@@ -143,43 +143,43 @@ class RampWallBot(BotAI):
             expansion_pos3 = Point3((*expansion_pos, height))
             self.client.debug_box2_out(expansion_pos3, half_vertex_length=2.5, color=green)
 
-    def draw_pathing_grid(self):
-        map_area = self.game_info.playable_area
-        for (b, a), value in np.ndenumerate(self.game_info.pathing_grid.data_numpy):
-            if value == 0:
-                continue
-            # Skip values outside of playable map area
-            if not map_area.x <= a < map_area.x + map_area.width:
-                continue
-            if not map_area.y <= b < map_area.y + map_area.height:
-                continue
-            p = Point2((a, b))
-            h2 = self.get_terrain_z_height(p)
-            pos = Point3((p.x, p.y, h2))
-            p0 = Point3((pos.x - 0.25, pos.y - 0.25, pos.z + 0.25)) + Point2((0.5, 0.5))
-            p1 = Point3((pos.x + 0.25, pos.y + 0.25, pos.z - 0.25)) + Point2((0.5, 0.5))
-            # logger.info(f"Drawing {p0} to {p1}")
-            color = Point3((0, 255, 0))
-            self.client.debug_box_out(p0, p1, color=color)
+    # def draw_pathing_grid(self):
+    #     map_area = self.game_info.playable_area
+    #     for (b, a), value in np.ndenumerate(self.game_info.pathing_grid.data_numpy):
+    #         if value == 0:
+    #             continue
+    #         # Skip values outside of playable map area
+    #         if not map_area.x <= a < map_area.x + map_area.width:
+    #             continue
+    #         if not map_area.y <= b < map_area.y + map_area.height:
+    #             continue
+    #         p = Point2((a, b))
+    #         h2 = self.get_terrain_z_height(p)
+    #         pos = Point3((p.x, p.y, h2))
+    #         p0 = Point3((pos.x - 0.25, pos.y - 0.25, pos.z + 0.25)) + Point2((0.5, 0.5))
+    #         p1 = Point3((pos.x + 0.25, pos.y + 0.25, pos.z - 0.25)) + Point2((0.5, 0.5))
+    #         # logger.info(f"Drawing {p0} to {p1}")
+    #         color = Point3((0, 255, 0))
+    #         self.client.debug_box_out(p0, p1, color=color)
 
-    def draw_placement_grid(self):
-        map_area = self.game_info.playable_area
-        for (b, a), value in np.ndenumerate(self.game_info.placement_grid.data_numpy):
-            if value == 0:
-                continue
-            # Skip values outside of playable map area
-            if not map_area.x <= a < map_area.x + map_area.width:
-                continue
-            if not map_area.y <= b < map_area.y + map_area.height:
-                continue
-            p = Point2((a, b))
-            h2 = self.get_terrain_z_height(p)
-            pos = Point3((p.x, p.y, h2))
-            p0 = Point3((pos.x - 0.25, pos.y - 0.25, pos.z + 0.25)) + Point2((0.5, 0.5))
-            p1 = Point3((pos.x + 0.25, pos.y + 0.25, pos.z - 0.25)) + Point2((0.5, 0.5))
-            # logger.info(f"Drawing {p0} to {p1}")
-            color = Point3((0, 255, 0))
-            self.client.debug_box_out(p0, p1, color=color)
+    # def draw_placement_grid(self):
+    #     map_area = self.game_info.playable_area
+    #     for (b, a), value in np.ndenumerate(self.game_info.placement_grid.data_numpy):
+    #         if value == 0:
+    #             continue
+    #         # Skip values outside of playable map area
+    #         if not map_area.x <= a < map_area.x + map_area.width:
+    #             continue
+    #         if not map_area.y <= b < map_area.y + map_area.height:
+    #             continue
+    #         p = Point2((a, b))
+    #         h2 = self.get_terrain_z_height(p)
+    #         pos = Point3((p.x, p.y, h2))
+    #         p0 = Point3((pos.x - 0.25, pos.y - 0.25, pos.z + 0.25)) + Point2((0.5, 0.5))
+    #         p1 = Point3((pos.x + 0.25, pos.y + 0.25, pos.z - 0.25)) + Point2((0.5, 0.5))
+    #         # logger.info(f"Drawing {p0} to {p1}")
+    #         color = Point3((0, 255, 0))
+    #         self.client.debug_box_out(p0, p1, color=color)
 
     def draw_vision_blockers(self):
         for p in self.game_info.vision_blockers:
@@ -191,19 +191,19 @@ class RampWallBot(BotAI):
             color = Point3((255, 0, 0))
             self.client.debug_box_out(p0, p1, color=color)
 
-    def draw_visibility_pixelmap(self):
-        for (y, x), value in np.ndenumerate(self.state.visibility.data_numpy):
-            p = Point2((x, y))
-            h2 = self.get_terrain_z_height(p)
-            pos = Point3((p.x, p.y, h2))
-            p0 = Point3((pos.x - 0.25, pos.y - 0.25, pos.z + 0.25)) + Point2((0.5, 0.5))
-            p1 = Point3((pos.x + 0.25, pos.y + 0.25, pos.z - 0.25)) + Point2((0.5, 0.5))
-            # Red
-            color = Point3((255, 0, 0))
-            # If value == 2: show green (= we have vision on that point)
-            if value == 2:
-                color = Point3((0, 255, 0))
-            self.client.debug_box_out(p0, p1, color=color)
+    # def draw_visibility_pixelmap(self):
+    #     for (y, x), value in np.ndenumerate(self.state.visibility.data_numpy):
+    #         p = Point2((x, y))
+    #         h2 = self.get_terrain_z_height(p)
+    #         pos = Point3((p.x, p.y, h2))
+    #         p0 = Point3((pos.x - 0.25, pos.y - 0.25, pos.z + 0.25)) + Point2((0.5, 0.5))
+    #         p1 = Point3((pos.x + 0.25, pos.y + 0.25, pos.z - 0.25)) + Point2((0.5, 0.5))
+    #         # Red
+    #         color = Point3((255, 0, 0))
+    #         # If value == 2: show green (= we have vision on that point)
+    #         if value == 2:
+    #             color = Point3((0, 255, 0))
+    #         self.client.debug_box_out(p0, p1, color=color)
 
     def draw_example(self):
         # Draw green boxes around SCVs if they are gathering, yellow if they are returning cargo, red the rest
