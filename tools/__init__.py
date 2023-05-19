@@ -1,1 +1,1 @@
-from .jsonParser import makeBuildOrder
+from .jsonParser import make_build_order

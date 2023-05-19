@@ -1,6 +1,6 @@
 import json
 
-def makeBuildOrder(filepath):
+def make_build_order(filepath):
     build_order = []
     with open(filepath) as f:
         build = json.load(f)
