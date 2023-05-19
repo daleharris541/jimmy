@@ -1,9 +1,8 @@
+from tools import closest_point
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.position import Point2, Point3
-from sc2.unit import Unit
-from sc2.units import Units
 from typing import FrozenSet, Set
 
 class ConstructionManager:
@@ -25,10 +24,10 @@ class ConstructionManager:
         elif order[0] == 'SUPPLYDEPOT':
             await self.build_structure(order[0], self.depot_positions[0])
             self.depot_positions.pop(0)
-        elif ("REACTOR") in order[0] or ("TECHLAB") in order[0]:
+        elif ("TECHLAB") in order[0] or ("REACTOR") in order[0]:
             await self.build_addon(order[0])
         elif order[0] == 'COMMANDCENTER':
-            await self.build_structure(order[0], self.bot.expansion_locations_list[3])
+            await self.build_expansion()    #under threat check
         else:
             await self.build_structure(order[0], self.building_positions[0])
             self.building_positions.pop(0)
@@ -44,7 +43,6 @@ class ConstructionManager:
         print(f"building {unit_name} at {pos}")
         if (await self.bot.build(UnitTypeId[unit_name], pos)):
             return True
-
 
     async def build_addon(self, unit_name):
         """
@@ -78,6 +76,22 @@ class ConstructionManager:
                     return True
                 else:
                     return False
+                
+    async def build_expansion(self):
+        """This function looks for the neares expansion location."""
+        used_positions = []
+        all_positions = self.bot.expansion_locations_list
+        available_positions = []
+
+        for townhall in self.bot.townhalls:
+            used_positions.append(townhall.position)
+        
+        for pos in all_positions:
+            if pos not in used_positions:
+                available_positions.append(pos)
+
+        pos = closest_point(self.bot.start_location, available_positions)
+        await self.bot.build(UnitTypeId.COMMANDCENTER, pos)
 
     def get_build_progress(self):
         structures = [structure for structure in self.bot.structures if structure.is_ready]

@@ -116,7 +116,7 @@ def calc_supply_depot_zones(self: BotAI):
         supply_depot_placement_list.append(Point2((cornerx, coordy)))
     return supply_depot_placement_list
 
-def calc_tech_building_zones(self: BotAI, corner_supply_depot: list, building_list: list):
+def calc_tech_building_zones(self: BotAI, corner_supply_depot: list):
     """
     This function will create a list of suitable locations for tech buildings
     It will return multiple sets of coordinates in a list

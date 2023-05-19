@@ -13,12 +13,12 @@ from sc2.unit import Unit
 from sc2.units import Units
 from sc2.game_data import AbilityData, Cost
 
-from BuildOrderManager import fill_build_queue, build_queue
 from tools import make_build_order
-from managers.CC_Manager import CC_Manager
-from managers.ConstructionManager import ConstructionManager
+from managers.BuildOrderManager import fill_build_queue, build_queue
 from managers.ArmyManager import train_unit
 from managers.MicroManager import idle_workers
+from managers.CC_Manager import CC_Manager
+from managers.ConstructionManager import ConstructionManager
 
 from debug import (
     label_unit,
@@ -45,7 +45,7 @@ class Jimmy(BotAI):
         self.step = 0
         self.queue_size = 5
 
-        self.debug = False
+        self.debug = True
 
     async def on_start(self):
         print("Game started")
@@ -54,9 +54,8 @@ class Jimmy(BotAI):
 
         build_order_cost(self, self.build_order)
 
-        self.building_list = [step for step in self.build_order if step[2] == 'structure']
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
-        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2], self.building_list)
+        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2])
 
         self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
 
@@ -74,14 +73,17 @@ class Jimmy(BotAI):
             if cc_manager.townhall.tag not in self.townhalls.tags:
                 self.cc_managers.remove(cc_manager)
             else:
-                await cc_manager.manage_cc(self.worker_pool)
-        #grab any workers idle
+                await cc_manager.manage_cc()
+
+        #worker controller
         await idle_workers(self)
-        #await self.construction_manager.supervisor('test')
+
+        #build order queue
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
 
         await self.order_distributor(build_queue(self))
+
         if self.debug:
             green = Point3((0, 255, 0))
             red = Point3((0, 0, 255))
@@ -89,7 +91,7 @@ class Jimmy(BotAI):
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             # properly send each item in the build order for tech buildings
             draw_building_points(self, self.supply_depot_placement_list, green, labels="DEPOT")
-            draw_building_points(self, self.tech_buildings_placement_list, green, self.building_list)
+            draw_building_points(self, self.tech_buildings_placement_list, green, labels="TechBuilding")
         
         # def on_enemy_unit_entered_vision(self, unit: Unit):
         # Raise Ramp Wall when enemy detected nearby
@@ -111,10 +113,13 @@ class Jimmy(BotAI):
                 else:
                     await self.construction_manager.supervisor(order)
             elif order[2] == 'unit':
-                await train_unit(self, order[0])
+                #await train_unit(self, order[0])
+                pass
             elif order[2] == 'worker':
-                #worker_pool += 1
-                await self.cc_managers[0].train_worker(70)
+                self.worker_pool += 1
+                for manger in self.cc_managers:
+                    if await manger.train_worker(self.worker_pool):
+                        break
             elif order[2] == 'upgrade':
                 #await self.Upgrade_Manager.supervisor(order)
                 print(f"Upgrade_Manager: {order}")
@@ -147,7 +152,7 @@ def main():
     run_game(
         maps.get("HardwireAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Terran, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":
