@@ -53,10 +53,8 @@ class Jimmy(BotAI):
         build_order_cost(self, self.build_order)
 
         self.building_list = [step for step in self.build_order if step[2] == 'structure']
-        temp, depot1, depot2 = calc_supply_depot_zones(self)
-        self.supply_depot_placement_list: Set[Point2] = temp
-        self.corner_depots_possition = [depot1, depot2]
-        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.corner_depots_possition, self.building_list)
+        self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
+        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2], self.building_list)
 
         self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
 

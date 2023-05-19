@@ -28,36 +28,16 @@ class ConstructionManager:
             await self.build_structure(order[0], self.building_positions)
 
     #construction order
-    async def build_structure(self: BotAI, unit_name, pos=None):
+    async def build_structure(self, unit_name, pos=None):
         """
         This function builds various structures based on build order
         You must send a position 
         It returns True/False to identify whether it executed or not
         This allows multiple attempts to build without skipping
         """
-        cc : Unit = self.townhalls.first
-        if pos is None:
-            #We didn't pass a position, so pick one since the lists are empty
-            pos = self.find_placement(near = cc.position.towards(self.game_info.map_center, 15))
-        #first two supply depots will be built on ramp, the rest on our planned layout
-        if unit_name == "SUPPLYDEPOT":
-            worker =  self.select_build_worker(pos)
-            if (await self.build(UnitTypeId[unit_name], pos,build_worker=worker)):
-                return True
-            else:
-                return False
-        elif unit_name == "BARRACKS": #build all buildings (except first barracks) in a different area lined up top to bottom
-            if self.structures(UnitTypeId.BARRACKS).amount + self.already_pending(UnitTypeId.BARRACKS) == 0:
-                pos = self.main_base_ramp.barracks_correct_placement.as_Point2D
-            if (await self.build(UnitTypeId[unit_name], pos)):
-                return True
-            else:
-                return False
-        else:
-            if (await self.build(UnitTypeId[unit_name],near = cc.position.towards(self.game_info.map_center, 15))):
-                return True
-            else:
-                return False
+        if (await self.bot.build(UnitTypeId[unit_name], pos[0])):
+            return True
+
 
     async def build_addon(self, unit_name):
         """
