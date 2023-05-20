@@ -9,14 +9,24 @@ units_starport = ['VIKING', 'MEDIVAC', 'LIBERATOR', 'RAVEN', 'BANSHEE', 'BATTLEC
 
 async def train_unit(self: BotAI, unit_name):
     if unit_name in units_barracks:
-        for barracks in self.structures(UnitTypeId.BARRACKS).ready.idle:
-            barracks.train(UnitTypeId[unit_name])
+        for barracks in self.structures(UnitTypeId.BARRACKS).ready:
+            print(f"ArmyManager: Barracks: Built {unit_name}")
+            if (barracks.train(UnitTypeId[unit_name],queue=True)):
+                print(f"I for sure am ready to build {unit_name}")
+            else:
+                print(f" I have failed to build something. I'm sad :( {unit_name})")
     elif unit_name in units_factory:
-        for factory in self.structures(UnitTypeId.FACTORY).ready.idle:
-            factory.train(UnitTypeId[unit_name])
+        for factory in self.structures(UnitTypeId.FACTORY).ready:
+            if (factory.train(UnitTypeId[unit_name])):
+                print(f"I for sure am ready to build {unit_name}")
+            else:
+                print(f" I have failed to build something. I'm sad :( {unit_name})")
     elif unit_name in units_starport:
-        for starport in self.structures(UnitTypeId.FACTORY).ready.idle:
-            starport.train(UnitTypeId[unit_name])
+        for starport in self.structures(UnitTypeId.FACTORY).ready:
+            if(starport.train(UnitTypeId[unit_name])):
+                print(f"I for sure am ready to build {unit_name}")
+            else:
+                print(f" I have failed to build something. I'm sad :( {unit_name})")
     else:
         print(f'ArmyManager: (trainUnit) something went wrong - {unit_name}')
         return False

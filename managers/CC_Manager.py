@@ -1,5 +1,4 @@
-import math
-
+from tools import closest_point
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
@@ -12,8 +11,9 @@ class CC_Manager:
         self.bot = bot
         self.townhall = townhall
         self.sphere_of_influence = 10 
+        self.max_worker = 16
 
-    async def manage_cc(self, worker_pool):
+    async def manage_cc(self):
         """The main function of the CC_Manager that manages the Command Center."""
         ### UPDATE VARIABLES ###
         self.cc = self.bot.structures.find_by_tag(self.townhall.tag)
@@ -31,7 +31,7 @@ class CC_Manager:
 
         else:
             self.cc(AbilityId.LIFT)
-            landing_positon = self.closest_point(self.bot.start_location, self.get_expansion_location())
+            landing_positon = closest_point(self.bot.start_location, self.get_expansion_location())
             self.cc(AbilityId.LAND, landing_positon)
 
 ### Functions for Workers
@@ -43,10 +43,14 @@ class CC_Manager:
                 controlled_worker.append(worker)
         return controlled_worker
 
+    #TODO #27 Only create the worker at the specified Command Center if it's not "full", otherwise create elsewhere
     async def train_worker(self, worker_pool):
-        """This function trains workers in the Comand Center"""
-        if len(self.bot.workers) < worker_pool and self.cc.is_idle and self.bot.can_afford(UnitTypeId.SCV):
-            self.cc.train(UnitTypeId.SCV)
+        """This function trains workers in the Command Center"""
+        if len(self.bot.workers) < worker_pool and len(self.workers) <= self.max_worker and len(self.cc.orders) < 5:
+            self.cc.train(UnitTypeId.SCV,queue=True)
+            return True
+        else:
+            return False
 
 ### Functions for Minerals   
     def get_mineral_fields(self):
@@ -159,13 +163,3 @@ class CC_Manager:
                 available_positions.append(pos)
   
         return available_positions
-    
-### Math
-    def closest_point(self, point, points):
-        """This function returns the nearest point to a given point from a list of points."""
-        def distance(p):
-            x1, y1 = point
-            x2, y2 = p
-            return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-        
-        return min(points, key=distance)
