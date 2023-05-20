@@ -11,7 +11,7 @@ class CC_Manager:
         self.bot = bot
         self.townhall = townhall
         self.sphere_of_influence = 10 
-        self.max_worker = 22
+        self.max_worker = 16
 
     async def manage_cc(self):
         """The main function of the CC_Manager that manages the Command Center."""
@@ -43,6 +43,7 @@ class CC_Manager:
                 controlled_worker.append(worker)
         return controlled_worker
 
+    #TODO #27 Only create the worker at the specified Command Center if it's not "full", otherwise create elsewhere
     async def train_worker(self, worker_pool):
         """This function trains workers in the Command Center"""
         if len(self.bot.workers) < worker_pool and len(self.workers) <= self.max_worker and len(self.cc.orders) < 5:
