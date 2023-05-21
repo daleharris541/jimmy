@@ -1,10 +1,27 @@
 import json
+from sc2.game_data import AbilityData, Cost
 
 def make_build_order(filepath):
     build_order = []
     with open(filepath) as f:
         build = json.load(f)
-
+    #consider name = unit structure to build
+    #second field in build order should be AbilityID if applicable
+    #normal build order
+    #0 = name
+    #1 = id
+    #2 = supply
+    #3 = time
+    #4 = frame
+    #proposed build order
+    #0 = structure name or unit name
+    #1 = abilityID if applicable
+    #2 = supply?
+    #3 = ?
+    #4 = cost
+    #tech_requirement_progress(self, structure_type: UnitTypeId) -> float:
+    # Returns the tech requirement progress for a specific building
+    # we only want structures being done this way
     for key in build:
         uppercase = key['name']
         name = uppercase.upper()
@@ -12,12 +29,35 @@ def make_build_order(filepath):
         type = key['type']
         supply = key['supply']
         time = key['time']
-        frame = key['frame']
-        build_order.append([name, type, supply])
+        cost = key['frame']
+        
+        if 'TECHLAB' in name:
+            if name[:8] == 'BARRACKS':
+                id = 'BUILD_TECHLAB_BARRACKS'
+            elif name[:7] == 'FACTORY':
+                id = "BUILD_TECHLAB_FACTORY"
+            elif name[:8] == 'STARPORT':
+                id = "BUILD_TECHLAB_STARPORT"
+        
+        elif 'REACTOR' in name:
+            if name[:8] == 'BARRACKS':
+                id = 'BUILD_REACTOR_BARRACKS'
+            elif name[:7] == 'FACTORY':
+                id = "BUILD_REACTOR_FACTORY"
+            elif name[:8] == 'STARPORT':
+                id = "BUILD_REACTOR_STARPORT"
 
-    for order in build_order:
-        if order[1] == 'action':
-            build_order.remove[order]
+        elif name == 'ORBITALCOMMND':
+            name = 'UPGRADETOORBITAL_ORBITALCOMMAND'
+            type = 'commandcenter' 
+
+        elif name == 'PLANETARYFORTRESS':
+            name = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
+            type = 'commandcenter' 
+        
+        elif name == 'REFINERY':
+            type = 'commandcenter'
+        build_order.append([name, id, type, supply])
 
     return build_order
 

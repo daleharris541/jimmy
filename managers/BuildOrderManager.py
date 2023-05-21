@@ -32,7 +32,7 @@ def build_queue(self: BotAI):
   
 def requirements_check(self: BotAI, step):
     can_build = False
-    if step[2] == 'structure':
+    if step[2] == 'structure' or step[2] == 'addon':
         if self.tech_requirement_progress(UnitTypeId[step[0]]) == 1:
             can_build = True
     elif step[2] == 'worker':
