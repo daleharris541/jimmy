@@ -21,6 +21,7 @@ from managers.ArmyManager import train_unit
 from managers.MicroManager import idle_workers
 from managers.CC_Manager import CC_Manager
 from managers.ConstructionManager import ConstructionManager
+from managers.UpgradeManager import research_upgrade
 
 from tools.debug import (
     label_unit,
@@ -42,7 +43,7 @@ class Jimmy(BotAI):
         self.built_army_units = []                   # this will have reapers, marines, dropships, etc
         self.cc_managers = []
         self.worker_pool = 12
-
+        self.failed_steps = []
         self.build_order = get_build_order(self,'16marinedrop-example')
         self.step = 0
         self.queue_size = 5
@@ -88,17 +89,20 @@ class Jimmy(BotAI):
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
         else:
-            if self.supply_cap < 190:
-                #send another army unit type to the queue
-                unit = self.built_army_units[randrange(1,len(self.built_army_units))]
-                    #select random type, add 5 more units
-                #([name, id, type, supply])
-                cost = self.calculate_cost(UnitTypeId[unit])
-                for i in range(1,5):
-                    self.build_order.append([unit,"10",'unit','150',cost])
+            #if (self.all_own_units(UnitTypeId.MARINE).count) < 70:
+            #send another army unit type to the queue
+            #unit = self.built_army_units[randrange(1,len(self.built_army_units))]
+                #select random type, add 5 more units
+            #([name, id, type, supply])
+            cost = self.calculate_cost(UnitTypeId.MARINE)
+            logger.critical("Building 5 marines!")
+            for i in range(1,5):
+                self.build_order.append(['MARINE',"10",'unit','150',cost])
         
-        await self.order_distributor(build_queue(self))
-
+        result = await self.order_distributor(build_queue(self))
+        if result is not None:
+            self.failed_steps.append(result)
+        print(f"Failed Steps: {self.failed_steps}")
         if self.debug:
             green = Point3((0, 255, 0))
             red = Point3((0, 0, 255))
@@ -191,7 +195,7 @@ class Jimmy(BotAI):
     
     async def order_distributor(self, order):
         if order != None:
-            if order[2] == 'commandcenter' or order[2] == 'structure':
+            if order[2] == 'commandcenter' or order[2] == 'addon' or order[2] == 'structure':
                 if order[0] == 'REFINERY':
                     self.cc_managers[0].build_refinery()
                 elif order[0] == 'ORBITALCOMMAND':
@@ -207,8 +211,8 @@ class Jimmy(BotAI):
                 for manager in self.cc_managers:
                     if await manager.train_worker(self.worker_pool):
                         break
-            elif order[2] == 'upgrade':
-                #await self.Upgrade_Manager.supervisor(order)
+            elif order[2] == 'upgrade' and order[0] == 'STIMPACK':
+                await research_upgrade(self, order[0])
                 print(f"Upgrade_Manager: {order}")
             elif order[2] == 'action':
                 #await self.Upgrade_Manager.supervisor(order)
@@ -216,10 +220,14 @@ class Jimmy(BotAI):
 
 def build_order_cost(self: BotAI, build_order):
     for order in build_order:
-        if order[2] == 'upgrade':
+        if order[2] == 'unit' or order[2] == 'worker' or order[2] == 'structure':
+            order.append(self.calculate_cost(UnitTypeId[order[0]]))
+        elif order[2] == 'addon' or order[2] == 'commandcenter':
+            order.append(self.calculate_cost(AbilityId[order[1]]))
+        elif order[2] == 'upgrade':
             order.append(self.calculate_cost(UpgradeId[order[0]]))
         else:
-            order.append(self.calculate_cost(UnitTypeId[order[0]]))
+            order.append(Cost(0,0))
 
 def get_build_order(self: BotAI, strategy):
     """
@@ -236,7 +244,7 @@ def get_build_order(self: BotAI, strategy):
 def main():
     run_game(
         maps.get("HardwireAIE"),
-        [Bot(Race.Terran, Jimmy()), Computer(Race.Terran, Difficulty.Easy)],
+        [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
         realtime=False,
     )
 

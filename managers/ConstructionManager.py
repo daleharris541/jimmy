@@ -24,9 +24,10 @@ class ConstructionManager:
         if order[0] == 'SUPPLYDEPOT':
             await self.build_structure(order[0], self.depot_positions[0])
             self.depot_positions.pop(0)
-        elif ("TECHLAB") in order[0] or ("REACTOR") in order[0]:
+        elif ("TECHLAB" or "REACTOR") in order[0]:
             print("CM: Supervisor: I can see TECHLAB or Reactor in the order")
-            await self.build_addon(order[0])
+            if (await self.build_addon(order[1])):
+                return order
         elif order[0] == 'COMMANDCENTER':
             await self.build_expansion()    #under threat check
         else:
@@ -51,29 +52,10 @@ class ConstructionManager:
         to build the addon since SCVs do not build it
         It returns True/False to identify whether it executed or not
         """
-        abilityID = ''
-        if unit_name[:7] == 'BARRACK':
-            if unit_name[-7:] == 'REACTOR':
-                abilityID = 'BUILD_REACTOR_BARRACKS'
-            elif unit_name[-7:] == 'TECHLAB':
-                abilityID = 'BUILD_TECHLAB_BARRACKS'
-
-        elif unit_name[:7] == 'FACTORY':
-            if unit_name[-7:] == 'REACTOR':
-                abilityID = "BUILD_REACTOR_FACTORY"
-            elif unit_name[-7:] == 'TECHLAB':
-                abilityID = "BUILD_TECHLAB_FACTORY"
-
-        elif unit_name[:8] == 'STARPORT':
-            if unit_name[-7:] == 'REACTOR':
-                abilityID = "BUILD_REACTOR_STARPORT"
-            elif unit_name[-7:] == 'TECHLAB':
-                abilityID = "BUILD_TECHLAB_STARPORT"
-
-        buildingType = abilityID.split("_")[2]
+        buildingType = unit_name.split("_")[2]
         for building in self.bot.structures(UnitTypeId[buildingType]).ready.idle:
             if not building.has_add_on:
-                if building(AbilityId[abilityID]):
+                if building(AbilityId[unit_name]):
                     print("Construction Manager: I built an addon!")
                     return True
                 else:

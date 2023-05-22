@@ -31,66 +31,45 @@ def make_build_order(filepath):
         time = key['time']
         cost = key['frame']
         
-        if 'TECHLAB' in name:
+        if type == 'upgrade':
+            if name == 'STIMPACK':
+                id = 'BARRACKSTECHLABRESEARCH_STIMPACK'
+        elif 'TECHLAB' in name:
             if name[:8] == 'BARRACKS':
                 id = 'BUILD_TECHLAB_BARRACKS'
+                type = 'addon'
             elif name[:7] == 'FACTORY':
                 id = "BUILD_TECHLAB_FACTORY"
+                type = 'addon'
             elif name[:8] == 'STARPORT':
                 id = "BUILD_TECHLAB_STARPORT"
+                type = 'addon'
         
         elif 'REACTOR' in name:
             if name[:8] == 'BARRACKS':
                 id = 'BUILD_REACTOR_BARRACKS'
+                type = 'addon'
             elif name[:7] == 'FACTORY':
                 id = "BUILD_REACTOR_FACTORY"
+                type = 'addon'
             elif name[:8] == 'STARPORT':
                 id = "BUILD_REACTOR_STARPORT"
+                type = 'addon'
 
         elif name == 'ORBITALCOMMND':
             name = 'UPGRADETOORBITAL_ORBITALCOMMAND'
+            id = 'UPGRADETOORBITAL_ORBITALCOMMAND'
             type = 'commandcenter' 
 
         elif name == 'PLANETARYFORTRESS':
             name = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
+            id = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
             type = 'commandcenter' 
         
         elif name == 'REFINERY':
             type = 'commandcenter'
-        elif name == 'COMMANDCENTER':
-            type = 'commandcenter'
+            id = 'TERRANBUILD_REFINERY'
         if type != 'action':
             build_order.append([name, id, type, supply])
 
     return build_order
-
-#we probably won't have to use this
-def order_change(build_order):
-    for order in build_order:
-
-        if 'TECHLAB' in order[0]:
-            if order[0][:8] == 'BARRACKS':
-                order[0] = 'BUILD_TECHLAB_BARRACKS'
-            elif order[0][:7] == 'FACTORY':
-                order[0] = "BUILD_TECHLAB_FACTORY"
-            elif order[0][:8] == 'STARPORT':
-                order[0] = "BUILD_TECHLAB_STARPORT"
-        
-        elif 'REACTOR' in order[0]:
-            if order[0][:8] == 'BARRACKS':
-                order[0] = 'BUILD_REACTOR_BARRACKS'
-            elif order[0][:7] == 'FACTORY':
-                order[0] = "BUILD_REACTOR_FACTORY"
-            elif order[0][:8] == 'STARPORT':
-                order[0] = "BUILD_REACTOR_STARPORT"
-
-        elif order[0] == 'ORBITALCOMMND':
-            order[0] = 'UPGRADETOORBITAL_ORBITALCOMMAND'
-            order[1] = 'commandcenter' 
-
-        elif order[0] == 'PLANETARYFORTRESS':
-            order[0] = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
-            order[1] = 'commandcenter' 
-        
-        elif order[0] == 'REFINERY':
-            order[1] = 'commandcenter'
