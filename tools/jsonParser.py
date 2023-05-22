@@ -58,17 +58,12 @@ def make_build_order(filepath):
 
         elif name == 'ORBITALCOMMND':
             name = 'UPGRADETOORBITAL_ORBITALCOMMAND'
-            id = 'UPGRADETOORBITAL_ORBITALCOMMAND'
-            type = 'commandcenter' 
+            type = 'addon' 
 
         elif name == 'PLANETARYFORTRESS':
             name = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
-            id = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
-            type = 'commandcenter' 
+            type = 'addon' 
         
-        elif name == 'REFINERY':
-            type = 'commandcenter'
-            id = 'TERRANBUILD_REFINERY'
         if type != 'action':
             build_order.append([name, id, type, supply])
 

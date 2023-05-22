@@ -15,21 +15,27 @@ class ConstructionManager:
         self.building_list = []
         self.test = 20
 
-    async def supervisor(self, order):
+    async def supervisor(self, order, cc_managers: list):
         ### UPDATE VARIABLES ###
         self.building_list.append(order)
+
         ### BEHAVIOR ###
-        #if order[0] == 'REFINERY' or order[0] == 'ORBITALCOMMAND':
-            #pass
-        if order[0] == 'SUPPLYDEPOT':
-            await self.build_structure(order[0], self.depot_positions[0])
-            self.depot_positions.pop(0)
-        elif ("TECHLAB" or "REACTOR") in order[0]:
-            print("CM: Supervisor: I can see TECHLAB or Reactor in the order")
+        if ("TECHLAB" or "REACTOR") in order[0]:
             if (await self.build_addon(order[1])):
                 return order
+            
+        elif order[0] == 'REFINERY':
+            cc_managers[0].build_refinery()
+
+        elif order[0] == 'ORBITALCOMMAND':
+            cc_managers[0].upgrade_orbital_command()
+
         elif order[0] == 'COMMANDCENTER':
             await self.build_expansion()    #under threat check
+
+        elif order[0] == 'SUPPLYDEPOT':
+            await self.build_structure(order[0], self.depot_positions[0])
+            self.depot_positions.pop(0)
         else:
             await self.build_structure(order[0], self.building_positions[0])
             self.building_positions.pop(0)

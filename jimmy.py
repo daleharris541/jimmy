@@ -1,5 +1,6 @@
 from typing import FrozenSet, Set, List, Tuple
 from random import randrange
+from loguru import logger
 
 from sc2 import maps
 from sc2.bot_ai import BotAI
@@ -13,16 +14,16 @@ from sc2.position import Point2, Point3
 from sc2.unit import Unit
 from sc2.units import Units
 from sc2.game_data import AbilityData, Cost
-from loguru import logger
 
-from tools import make_build_order
 from managers.BuildOrderManager import fill_build_queue, build_queue
 from managers.ArmyManager import train_unit
 from managers.MicroManager import idle_workers
+from managers.UpgradeManager import research_upgrade
 from managers.CC_Manager import CC_Manager
 from managers.ConstructionManager import ConstructionManager
 
-from tools.draw import draw_building_points
+from tools import make_build_order
+from tools import draw_building_points
 from tools.placement import calc_supply_depot_zones, calc_tech_building_zones
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
@@ -31,53 +32,47 @@ class Jimmy(BotAI):
     
     #following code from bot.py from smoothbrain bot as example
     def __init__(self):
-        self.game_step: int = 2                      # 2 usually, 6 vs human
-        self.built_army_units = []                   # this will have reapers, marines, dropships, etc
+        self.build_order = get_build_order(self,'16marinedrop-example')
+        self.queue_size = 5
+        self.step = 0
+
         self.cc_managers = []
         self.worker_pool = 12
-        self.failed_steps = []
-        self.build_order = get_build_order(self,'16marinedrop-example')
-        self.step = 0
-        self.queue_size = 5
 
+        self.failed_steps = []
+        self.built_army_units = []                   # this will have reapers, marines, dropships, etc
+
+        self.game_step: int = 2                      # 2 usually, 6 vs human
         self.debug = True
 
     async def on_start(self):
-        print("Game started")
-        if len(self.build_order) != 0:
-            print(self.build_order)
-
         build_order_cost(self, self.build_order)
+        print(self.build_order)
 
         self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
         self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2])
 
+        ### ConstructionManager ###
         self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
 
     async def on_step(self, iteration):
-        # Find all Command Centers
+        ### CC_Manager ###
         cc_list = self.townhalls.ready
-        # Create a new CC_Manager instance for each Command Center if it doesn't already exist
         for cc in cc_list:
             if not any(cc_manager.townhall.tag == cc.tag for cc_manager in self.cc_managers):
                 cc_manager = CC_Manager(self, cc)
                 self.cc_managers.append(cc_manager)
 
-        # Call the manage_cc function for each CC_Manager instance
         for cc_manager in self.cc_managers:
             if cc_manager.townhall.tag not in self.townhalls.tags:
                 self.cc_managers.remove(cc_manager)
             else:
                 await cc_manager.manage_cc()
-
-        #add supply depots if we are close on cap
-        #if self.supply_left < 10 and self.already_pending(UnitTypeId.SUPPLYDEPOT) == 0:
-            #self.build_order.append(['SUPPLYDEPOT',"10",'structure','150',Cost(100, 0)])
-
-        #worker controller
+        
+        ### MicroManager ###
         await idle_workers(self)
 
-        #build order queue
+        ### BuildOrderManager ###
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
         else:
@@ -94,13 +89,13 @@ class Jimmy(BotAI):
         result = await self.order_distributor(build_queue(self))
         if result is not None:
             self.failed_steps.append(result)
-        print(f"Failed Steps: {self.failed_steps}")
+        #print(f"Failed Steps: {self.failed_steps}")
+
         if self.debug:
             green = Point3((0, 255, 0))
             red = Point3((0, 0, 255))
             blue = Point3((255, 0, 0))
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
-            # properly send each item in the build order for tech buildings
             draw_building_points(self, self.supply_depot_placement_list, green, labels="DEPOT")
             draw_building_points(self, self.tech_buildings_placement_list, green, labels="TechBuilding")
         
@@ -159,22 +154,11 @@ class Jimmy(BotAI):
         if targets:
             return targets.random.position, True
 
-        if (
-            self.units
-            and min(
-                (
-                    u.position.distance_to(self.enemy_start_locations[0])
-                    for u in self.units
-                )
-            )
-            < 10
-        ):
+        if (self.units and min((u.position.distance_to(self.enemy_start_locations[0]) for u in self.units))< 10):
             return self.enemy_start_locations[0].position, False
         
         return self.mineral_field.random.position, False
 
-    
-    
     async def on_building_construction_started(self, unit: Unit):
         logger.info(f"Construction of building {unit} started at {unit.position}.")
 
@@ -187,25 +171,24 @@ class Jimmy(BotAI):
     
     async def order_distributor(self, order):
         if order != None:
-            if order[2] == 'commandcenter' or order[2] == 'addon' or order[2] == 'structure':
-                if order[0] == 'REFINERY':
-                    self.cc_managers[0].build_refinery()
-                elif order[0] == 'ORBITALCOMMAND':
-                    self.cc_managers[0].upgrade_orbital_command()
-                else:
-                    await self.construction_manager.supervisor(order)
+
+            if order[2] == 'structure' or order[2] == 'addon':
+                    await self.construction_manager.supervisor(order, self.cc_managers)
+
             elif order[2] == 'unit':
                 if order[0] not in self.built_army_units:
                     self.built_army_units.append(order[0])
                 await train_unit(self, order[0])
+
             elif order[2] == 'worker':
                 self.worker_pool += 1
                 for manager in self.cc_managers:
                     if await manager.train_worker(self.worker_pool):
                         break
+
             elif order[2] == 'upgrade' and order[0] == 'STIMPACK':
                 await research_upgrade(self, order[0])
-                print(f"Upgrade_Manager: {order}")
+
             elif order[2] == 'action':
                 #await self.Upgrade_Manager.supervisor(order)
                 print(f"We do nothing")
@@ -214,7 +197,7 @@ def build_order_cost(self: BotAI, build_order):
     for order in build_order:
         if order[2] == 'unit' or order[2] == 'worker' or order[2] == 'structure':
             order.append(self.calculate_cost(UnitTypeId[order[0]]))
-        elif order[2] == 'addon' or order[2] == 'commandcenter':
+        elif order[2] == 'addon':
             order.append(self.calculate_cost(AbilityId[order[1]]))
         elif order[2] == 'upgrade':
             order.append(self.calculate_cost(UpgradeId[order[0]]))
@@ -222,10 +205,7 @@ def build_order_cost(self: BotAI, build_order):
             order.append(Cost(0,0))
 
 def get_build_order(self: BotAI, strategy):
-    """
-    The build order is a json file you must parse.
-    It returns a list of items matching the json keys.
-    """
+    """The build order is a json file you must parse. It returns a list of items matching the json keys."""
     build_order = None
     build_order = make_build_order('strategies/' + strategy + '.json')
     if build_order is not None:
