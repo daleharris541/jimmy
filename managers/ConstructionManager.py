@@ -13,7 +13,6 @@ class ConstructionManager:
         self.depot_positions = depot_positions
         self.building_positions = building_positions
         self.building_list = []
-        self.test = 20
 
     async def supervisor(self, order, cc_managers: list):
         ### UPDATE VARIABLES ###
@@ -25,10 +24,14 @@ class ConstructionManager:
                 return order
             
         elif order[0] == 'REFINERY':
-            cc_managers[0].build_refinery()
+            for manager in cc_managers:
+                if manager.build_refinery():
+                    break
 
         elif order[0] == 'ORBITALCOMMAND':
-            cc_managers[0].upgrade_orbital_command()
+            for manager in cc_managers:
+                if manager.upgrade_orbital_command():
+                    break
 
         elif order[0] == 'COMMANDCENTER':
             await self.build_expansion()    #under threat check

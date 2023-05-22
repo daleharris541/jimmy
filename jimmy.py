@@ -166,6 +166,7 @@ class Jimmy(BotAI):
         logger.info(f"Construction of building {unit} completed at {unit.position}.")
         logger.critical(unit)
         #Example: Construction of building Unit(name='CommandCenter', tag=4361814017) completed at (135.5, 167.5).
+
         if unit.name == 'CommandCenter':
             self.move_army(unit.position)
     
@@ -186,12 +187,8 @@ class Jimmy(BotAI):
                     if await manager.train_worker(self.worker_pool):
                         break
 
-            elif order[2] == 'upgrade' and order[0] == 'STIMPACK':
+            elif order[2] == 'upgrade':
                 await research_upgrade(self, order[0])
-
-            elif order[2] == 'action':
-                #await self.Upgrade_Manager.supervisor(order)
-                print(f"We do nothing")
 
 def build_order_cost(self: BotAI, build_order):
     for order in build_order:
