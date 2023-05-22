@@ -16,9 +16,9 @@ def make_build_order(filepath):
     #proposed build order
     #0 = structure name or unit name
     #1 = abilityID if applicable
-    #2 = supply?
-    #3 = ?
-    #4 = cost
+    #2 = type
+    #3 = supply
+    #4 = cost (added on templateBot)
     #tech_requirement_progress(self, structure_type: UnitTypeId) -> float:
     # Returns the tech requirement progress for a specific building
     # we only want structures being done this way
@@ -57,10 +57,14 @@ def make_build_order(filepath):
         
         elif name == 'REFINERY':
             type = 'commandcenter'
-        build_order.append([name, id, type, supply])
+        elif name == 'COMMANDCENTER':
+            type = 'commandcenter'
+        if type != 'action':
+            build_order.append([name, id, type, supply])
 
     return build_order
 
+#we probably won't have to use this
 def order_change(build_order):
     for order in build_order:
 

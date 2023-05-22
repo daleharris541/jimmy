@@ -19,12 +19,13 @@ class ConstructionManager:
         ### UPDATE VARIABLES ###
         self.building_list.append(order)
         ### BEHAVIOR ###
-        if order[0] == 'REFINERY' or order[0] == 'ORBITALCOMMAND':
-            pass
-        elif order[0] == 'SUPPLYDEPOT':
+        #if order[0] == 'REFINERY' or order[0] == 'ORBITALCOMMAND':
+            #pass
+        if order[0] == 'SUPPLYDEPOT':
             await self.build_structure(order[0], self.depot_positions[0])
             self.depot_positions.pop(0)
         elif ("TECHLAB") in order[0] or ("REACTOR") in order[0]:
+            print("CM: Supervisor: I can see TECHLAB or Reactor in the order")
             await self.build_addon(order[0])
         elif order[0] == 'COMMANDCENTER':
             await self.build_expansion()    #under threat check
@@ -71,8 +72,9 @@ class ConstructionManager:
 
         buildingType = abilityID.split("_")[2]
         for building in self.bot.structures(UnitTypeId[buildingType]).ready.idle:
-            if not building.has_add_on and building.add_on_position:
+            if not building.has_add_on:
                 if building(AbilityId[abilityID]):
+                    print("Construction Manager: I built an addon!")
                     return True
                 else:
                     return False
@@ -91,6 +93,8 @@ class ConstructionManager:
                 available_positions.append(pos)
 
         pos = closest_point(self.bot.start_location, available_positions)
+        
+        #as we expand, move army nearby to cover expansion
         await self.bot.build(UnitTypeId.COMMANDCENTER, pos)
 
     def get_build_progress(self):
