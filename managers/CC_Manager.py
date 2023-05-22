@@ -98,7 +98,7 @@ class CC_Manager:
         """This function returns Refinerys in range of the Command Center."""
         existing_refineries = Units([], self)
         for refinery in self.bot.gas_buildings.ready:
-            if self.cc.distance_to(refinery) < self.sphere_of_influence:
+            if self.cc.distance_to(refinery) < self.sphere_of_influence and refinery.has_vespene:
                 existing_refineries.append(refinery)
         return existing_refineries
 

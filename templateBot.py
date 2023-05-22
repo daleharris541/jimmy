@@ -22,7 +22,7 @@ from managers.MicroManager import idle_workers
 from managers.CC_Manager import CC_Manager
 from managers.ConstructionManager import ConstructionManager
 
-from debug import (
+from tools.debug import (
     label_unit,
     draw_building_points,
     draw_expansions,
