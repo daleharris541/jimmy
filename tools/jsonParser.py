@@ -29,7 +29,7 @@ def make_build_order(filepath):
         type = key['type']
         supply = key['supply']
         time = key['time']
-        cost = key['frame']
+        frame = key['frame']
         
         if type == 'upgrade':
             if name == 'STIMPACK':

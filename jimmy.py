@@ -177,9 +177,10 @@ class Jimmy(BotAI):
                     await self.construction_manager.supervisor(order, self.cc_managers)
 
             elif order[2] == 'unit':
-                if order[0] not in self.built_army_units:
-                    self.built_army_units.append(order[0])
-                await train_unit(self, order[0])
+                #if order[0] not in self.built_army_units:
+                #    self.built_army_units.append(order[0])
+                #await train_unit(self, order[0])
+                pass
 
             elif order[2] == 'worker':
                 self.worker_pool += 1
@@ -214,7 +215,7 @@ def main():
     run_game(
         maps.get("HardwireAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":
