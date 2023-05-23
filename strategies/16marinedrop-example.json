@@ -648,6 +648,14 @@
         "frame": 6167
     },
     {
+        "name": "CommandCenter",
+        "id": 18,
+        "type": "structure",
+        "supply": 20,
+        "time": "01:39",
+        "frame": 2229
+    },
+    {
         "name": "SupplyDepot",
         "id": 19,
         "type": "structure",

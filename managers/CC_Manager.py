@@ -17,6 +17,7 @@ class CC_Manager:
         """The main function of the CC_Manager that manages the Command Center."""
         ### UPDATE VARIABLES ###
         self.cc = self.bot.structures.find_by_tag(self.townhall.tag)
+        #print(self.cc.position)
         if self.cc.position in self.bot.expansion_locations_list:
             self.workers = self.get_close_workers()
             self.available_minerals = self.get_mineral_fields()
@@ -36,7 +37,7 @@ class CC_Manager:
 
 ### Functions for Workers
     def get_close_workers(self):
-        """This function returns a list of all wokers in range of the Comand Center"""
+        """This function returns a list of all wokers in range of the Command Center"""
         controlled_worker = Units([], self)
         for worker in self.bot.workers:
             if self.cc.distance_to(worker) < self.sphere_of_influence:
@@ -46,8 +47,8 @@ class CC_Manager:
     #TODO #27 Only create the worker at the specified Command Center if it's not "full", otherwise create elsewhere
     async def train_worker(self, worker_pool):
         """This function trains workers in the Command Center"""
-        if len(self.bot.workers) < worker_pool and len(self.workers) <= self.max_worker and len(self.cc.orders) < 5:
-            self.cc.train(UnitTypeId.SCV,queue=True)
+        if len(self.bot.workers) < worker_pool and len(self.workers) <= self.max_worker and len(self.cc.orders) < 5 and self.cc.is_idle:
+            self.cc.train(UnitTypeId.SCV)
             return True
         else:
             return False
@@ -63,7 +64,7 @@ class CC_Manager:
 
 ### Functions for Vespenegas  
     def get_vespene_geysers(self):
-        """This function returns the unoccupied vespene geysers in range of the Comand Center."""
+        """This function returns the unoccupied vespene geysers in range of the Command Center."""
         close_vespene_geysers = Units([], self)
         close_refineries = Units([], self)
         available_vespene_geysers = Units([], self)
@@ -83,25 +84,26 @@ class CC_Manager:
         return available_vespene_geysers
             
     def build_refinery(self):
-        """This function builds Refinerys in range of the Comand Center."""
+        """This function builds Refinerys in range of the Command Center."""
         if len(self.available_vespene) > 0:
             for vespene_geyser in self.available_vespene:
                 worker: Unit = self.bot.select_build_worker(vespene_geyser)
-                worker.build_gas(vespene_geyser)
+                if worker:
+                    worker.build_gas(vespene_geyser)
                 return True
         else:
             return False
 
     def get_refineries(self):
-        """This function returns Refinerys in range of the Comand Center."""
+        """This function returns Refinerys in range of the Command Center."""
         existing_refineries = Units([], self)
         for refinery in self.bot.gas_buildings.ready:
-            if self.cc.distance_to(refinery) < self.sphere_of_influence:
+            if self.cc.distance_to(refinery) < self.sphere_of_influence and refinery.has_vespene:
                 existing_refineries.append(refinery)
         return existing_refineries
 
     def assign_workers_to_refinery(self):
-        """This function assigns workers to available Refinerys in range of the Comand Center."""
+        """This function assigns workers to available Refinerys in range of the Command Center."""
         for refinery in self.available_refinerys:
             assigned_workers = refinery.assigned_harvesters
             surplus_workers = assigned_workers - 3
