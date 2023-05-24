@@ -26,6 +26,8 @@ from tools import make_build_order
 from tools import draw_building_points
 from tools.placement import calc_supply_depot_zones, calc_tech_building_zones
 
+from tools.placement import depot_positions, building_positions
+
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
 
 class Jimmy(BotAI):
@@ -47,10 +49,10 @@ class Jimmy(BotAI):
 
     async def on_start(self):
         build_order_cost(self, self.build_order)
-        print(self.build_order)
+        #print(self.build_order)
 
-        self.supply_depot_placement_list: Set[Point2] = calc_supply_depot_zones(self)
-        self.tech_buildings_placement_list: Set[Point2] = calc_tech_building_zones(self, self.supply_depot_placement_list[2])
+        self.supply_depot_placement_list: Set[Point2] = depot_positions(self)
+        self.tech_buildings_placement_list: Set[Point2] = building_positions(self)
 
         ### ConstructionManager ###
         self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
@@ -72,7 +74,9 @@ class Jimmy(BotAI):
         ### MicroManager ###
         await idle_workers(self)
 
+
         ### BuildOrderManager ###
+        """
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
         else:
@@ -82,36 +86,24 @@ class Jimmy(BotAI):
                 #select random type, add 5 more units
             #([name, id, type, supply])
             cost = self.calculate_cost(UnitTypeId.MARINE)
-            logger.critical("Building 5 marines!")
             for i in range(1,5):
                 self.build_order.append(['MARINE',"10",'unit','150',cost])
         
-        result = await self.order_distributor(build_queue(self))
-        if result is not None:
-            self.failed_steps.append(result)
-        #print(f"Failed Steps: {self.failed_steps}")
-
+        for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
+            depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
+        """
         if self.debug:
             green = Point3((0, 255, 0))
             red = Point3((0, 0, 255))
             blue = Point3((255, 0, 0))
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
-            draw_building_points(self, self.supply_depot_placement_list, green, labels="DEPOT")
+            draw_building_points(self, self.supply_depot_placement_list, blue, labels="DEPOT")
             draw_building_points(self, self.tech_buildings_placement_list, green, labels="TechBuilding")
-        
-        # def on_enemy_unit_entered_vision(self, unit: Unit):
-        # Raise Ramp Wall when enemy detected nearby
-        # if get_distance(self,self.main_base_ramp.top_center,Unit.position) < 15:
-        #     for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
-        #         depot(AbilityId.MORPH_SUPPLYDEPOT_RAISE)
-        # else:
-        for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
-            depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
+
     
     async def move_army(self, pos):
         #Gather all types of army units
         #send to location
-        logger.warning("Moving Army units!")
         all_army_units = self.built_army_units
         for unit_types in all_army_units:
             boys = self.units(UnitTypeId[unit_types])
@@ -124,7 +116,7 @@ class Jimmy(BotAI):
         :param unit:
         """
         # Send all units we've sent to be built to meet enemy entered vision
-        logger.critical("Enemy has entered vision!")
+    
         all_army_types = self.built_army_units
         if all_army_types:
             for unit_type in all_army_types:
@@ -159,14 +151,7 @@ class Jimmy(BotAI):
         
         return self.mineral_field.random.position, False
 
-    async def on_building_construction_started(self, unit: Unit):
-        logger.info(f"Construction of building {unit} started at {unit.position}.")
-
     async def on_building_construction_complete(self, unit: Unit):
-        logger.info(f"Construction of building {unit} completed at {unit.position}.")
-        logger.critical(unit)
-        #Example: Construction of building Unit(name='CommandCenter', tag=4361814017) completed at (135.5, 167.5).
-
         if unit.name == 'CommandCenter':
             self.move_army(unit.position)
     
@@ -177,9 +162,9 @@ class Jimmy(BotAI):
                     await self.construction_manager.supervisor(order, self.cc_managers)
 
             elif order[2] == 'unit':
-                #if order[0] not in self.built_army_units:
-                #    self.built_army_units.append(order[0])
-                #await train_unit(self, order[0])
+                if order[0] not in self.built_army_units:
+                    self.built_army_units.append(order[0])
+                await train_unit(self, order[0])
                 pass
 
             elif order[2] == 'worker':
