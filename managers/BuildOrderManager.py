@@ -7,7 +7,7 @@ from sc2.game_data import AbilityData, Cost
 from sc2.dicts.unit_trained_from import UNIT_TRAINED_FROM
 
 next_build_steps = []
-debug = False
+debug = True
 
 def fill_build_queue(build_order: list, step, range):
     if len(next_build_steps) < range:

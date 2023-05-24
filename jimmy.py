@@ -49,7 +49,7 @@ class Jimmy(BotAI):
 
     async def on_start(self):
         build_order_cost(self, self.build_order)
-        #print(self.build_order)
+        print(self.build_order)
 
         self.supply_depot_placement_list: Set[Point2] = depot_positions(self)
         self.tech_buildings_placement_list: Set[Point2] = building_positions(self)
@@ -74,9 +74,7 @@ class Jimmy(BotAI):
         ### MicroManager ###
         await idle_workers(self)
 
-
         ### BuildOrderManager ###
-        """
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
         else:
@@ -91,7 +89,7 @@ class Jimmy(BotAI):
         
         for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
             depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
-        """
+
         if self.debug:
             green = Point3((0, 255, 0))
             red = Point3((0, 0, 255))
@@ -200,7 +198,7 @@ def main():
     run_game(
         maps.get("HardwireAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":

@@ -1,15 +1,13 @@
 from sc2.bot_ai import BotAI
-from sc2.position import Point2
+from sc2.position import Point2, Point3
 from typing import Set
 
-
-
 def placement_positions(self: BotAI):
-    direction_vector = get_direction_vector(self.start_location, self.main_base_ramp.barracks_in_middle) #self.main_base_ramp.barracks_in_middle
+    direction_vector = get_direction_vector(self.start_location, self.main_base_ramp.top_center.position) #self.main_base_ramp.barracks_in_middle
     start_position = self.start_location
 
     base_offset = 4.5
-    starting_point = Point2((start_position.x + (round(direction_vector.x) * base_offset), start_position.y + (round(direction_vector.y) * base_offset)))
+    starting_point = Point2((int(start_position.x + (round(direction_vector.x) * base_offset)), start_position.y + (round(direction_vector.y) * base_offset)))
 
     return direction_vector, starting_point
 
@@ -19,8 +17,8 @@ def depot_positions(self: BotAI):
     offsets = [2, 4, 6, 8]
 
     for offset in offsets:
-        depot_placements.append(Point2((starting_point.x + (offset * -direction_vector.x), starting_point.y)))
-        depot_placements.append(Point2((starting_point.x, starting_point.y + (offset * -direction_vector.y))))
+        depot_placements.append(Point2((int(starting_point.x + (offset * -direction_vector.x)), int(starting_point.y))))
+        depot_placements.append(Point2((int(starting_point.x), int(starting_point.y + (offset * -direction_vector.y)))))
     
     depot_placements.append(starting_point)
     return depot_placements
@@ -32,19 +30,18 @@ def building_positions(self: BotAI):
     y_offsets = [0, 3, 6, 9, 12, 15, 18, 21, 24]
     x_spacing = [0, 6, 12, 18, 24]
 
-    inverse_starting_point = Point2((starting_point.x + (8.5 *(-direction_vector.x)), starting_point.y + (8.5 *(-direction_vector.y))))
+    inverse_starting_point = Point2((starting_point.x + (9 *(-direction_vector.x)), starting_point.y + (9 *(-direction_vector.y))))
 
     vg_positions = create_vespene_geyser_points(self)
 
     for space in x_spacing:
         for offset in y_offsets:
-            point = Point2((inverse_starting_point.x + (space * direction_vector.x), inverse_starting_point.y + (offset * direction_vector.y)))
-            #if not (point in vg_positions or invalid_positions(self, point, starting_height)):
-            building_placements.append(point)
+            point = Point2((int(inverse_starting_point.x + (space * direction_vector.x)), int(inverse_starting_point.y + (offset * direction_vector.y))))
+            if not (point in vg_positions or invalid_positions(self, point, starting_height)):
+                building_placements.append(point)
 
-    valid_placements = filter_points(Point2((starting_point.x , starting_point.y)), Point2((-direction_vector.x, -direction_vector.y)), building_placements)
-    vg_positions = create_vespene_geyser_points(self)
-    print(direction_vector)
+    valid_placements = filter_points(Point2((starting_point.x + (1 * direction_vector.x), starting_point.y+ (1 * direction_vector.y))), Point2((-direction_vector.x, -direction_vector.y)), building_placements)
+
     return valid_placements
 
 def filter_points(reference_point: Point2, vektor: Point2, points: Set[Point2]):
@@ -59,7 +56,6 @@ def filter_points(reference_point: Point2, vektor: Point2, points: Set[Point2]):
     new_placements: Set[Point2] = [pos for pos in points if pos not in invalid_placements]
 
     return new_placements
-
 
 def calc_supply_depot_zones(self: BotAI):
     """
@@ -161,14 +157,6 @@ def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -
     1. If all 4 corners of building pass check, returns False\n
     1. This is how we are making the grid for tech buildings\n
     """
-    # pointrange = [-2,2]
-    # for corner_y in pointrange:
-    #             for corner_x in pointrange:
-    #                 if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
-    #                         self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
-    #                     return True   
-    # return False
-
     corners = temp_point.neighbors4
     for point in corners:
         point = Point2((point))
