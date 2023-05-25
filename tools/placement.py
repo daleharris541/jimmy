@@ -1,5 +1,5 @@
 from sc2.bot_ai import BotAI
-from sc2.position import Point2, Point3
+from sc2.position import Point2
 from typing import Set
 
 def placement_positions(self: BotAI):

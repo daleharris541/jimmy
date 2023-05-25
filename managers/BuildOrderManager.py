@@ -1,9 +1,8 @@
 from typing import Set
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.ids.ability_id import AbilityId
 from sc2.ids.upgrade_id import UpgradeId
-from sc2.game_data import AbilityData, Cost
+from sc2.game_data import Cost
 from sc2.dicts.unit_trained_from import UNIT_TRAINED_FROM
 
 next_build_steps = []

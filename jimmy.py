@@ -68,14 +68,13 @@ class Jimmy(BotAI):
             else:
                 await cc_manager.manage_cc()
 
-        ### MicroManager ###
-        await self.micro_manager.controller()
-
         ### BuildOrderManager ###
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
-
         await self.order_distributor(build_queue(self))
+
+        ### MicroManager ###
+        await self.micro_manager.controller()
         
         for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
             depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)

@@ -3,8 +3,8 @@ from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
-from sc2.position import Point2, Point3
-from typing import FrozenSet, Set
+from sc2.position import Point2
+from typing import Set
 
 class ConstructionManager:
 

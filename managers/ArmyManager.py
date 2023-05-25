@@ -1,8 +1,5 @@
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.unit import Unit
-from sc2.units import Units
-from loguru import logger
 
 units_barracks = ['MARINE', 'REAPER', 'MARAUDER', 'GHOST']
 units_factory = ['HELLION', 'WIDOWMINE', 'CYCLONE', 'SIEGETANK']
