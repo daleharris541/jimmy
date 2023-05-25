@@ -2,6 +2,64 @@ from sc2.bot_ai import BotAI
 from sc2.position import Point2, Point3
 from typing import Set
 
+def placement_positions(self: BotAI):
+    direction_vector = get_direction_vector(self.start_location, self.main_base_ramp.top_center.position) #self.main_base_ramp.barracks_in_middle
+    start_position = self.start_location
+
+    base_offset = 4.5
+    starting_point = Point2((int(start_position.x + (round(direction_vector.x) * base_offset)), start_position.y + (round(direction_vector.y) * base_offset)))
+
+    return direction_vector, starting_point
+
+def depot_positions(self: BotAI):
+    depot_placements: Set[Point2] = []
+    direction_vector, starting_point = placement_positions(self)
+    offsets = [2, 4, 6, 8]
+
+    for depot in self.main_base_ramp.corner_depots:
+        depot_placements.append(depot)
+
+    depot_placements.append(starting_point)
+
+    for offset in offsets:
+        depot_placements.append(Point2((int(starting_point.x + (offset * -direction_vector.x)), int(starting_point.y))))
+        depot_placements.append(Point2((int(starting_point.x), int(starting_point.y + (offset * -direction_vector.y)))))
+    
+    return depot_placements
+
+def building_positions(self: BotAI):
+    building_placements: Set[Point2] = []
+    direction_vector, starting_point = placement_positions(self)
+    inverse_starting_point = Point2((starting_point.x + (9 *(-direction_vector.x)), starting_point.y + (9 *(-direction_vector.y))))
+    starting_height = self.get_terrain_z_height(self.start_location)
+    y_offsets = [0, 3, 6, 9, 12, 15, 18, 21, 24]
+    x_spacing = [0, 6, 12, 18, 24]
+
+    building_placements.append(self.main_base_ramp.barracks_correct_placement)
+    vg_positions = create_vespene_geyser_points(self)
+
+    for space in x_spacing:
+        for offset in y_offsets:
+            point = Point2((int(inverse_starting_point.x + (space * direction_vector.x)), int(inverse_starting_point.y + (offset * direction_vector.y))))
+            if not (point in vg_positions or invalid_positions(self, point, starting_height)):
+                building_placements.append(point)
+
+    valid_placements = filter_points(Point2((starting_point.x + (1 * direction_vector.x), starting_point.y+ (1 * direction_vector.y))), Point2((-direction_vector.x, -direction_vector.y)), building_placements)
+
+    return valid_placements
+
+def filter_points(reference_point: Point2, vektor: Point2, points: Set[Point2]):
+    invalid_placements: Set[Point2] = []
+
+    for point in points:
+        diff_vector = Point2((point.x - reference_point.x , point.y - reference_point.y))
+
+        if (diff_vector.x * vektor.x) > 0 and (diff_vector.y * vektor.y) > 0:
+            invalid_placements.append(point)
+
+    new_placements: Set[Point2] = [pos for pos in points if pos not in invalid_placements]
+
+    return new_placements
 
 def calc_supply_depot_zones(self: BotAI):
     """
@@ -42,22 +100,20 @@ def calc_supply_depot_zones(self: BotAI):
     
     # direction vector to point from enemy back to our CC
     # Enemy to Me Vector: (-1.0, 1.0) showing enemy sees us left and above us
-    direction_vector = get_direction_vector(
-        self, self.enemy_start_locations[0], self.start_location
-    )
+    direction_vector = get_direction_vector(self.enemy_start_locations[0], self.start_location)
     xdirection = round(direction_vector.x)
     ydirection = round(direction_vector.y)
     x = self.start_location.x+(-2.5*xdirection)
     y = self.start_location.y+(-2.5*ydirection)
 
     offset_space = -1 #this is the offset around the command center
-    corner = Point2((x + (xdirection * offset_space), y + (ydirection * offset_space)))
+    corner = Point2(( x + (xdirection * offset_space), y + (ydirection * offset_space) ))
     # add 9 supply depots to be symmetrical can not do 11 since placement will be rough
     cornerx = int(corner.x)
     cornery = int(corner.y)
-    for coordx in range(cornerx, cornerx + (10 * xdirection), 2 * xdirection):
+    for coordx in range(cornerx + (2 * xdirection), cornerx + (10 * xdirection), 2 * xdirection):
         supply_depot_placement_list.append(Point2((coordx, cornery)))
-    for coordy in range(cornery + (-2 * xdirection), cornery + (10 * ydirection), 2 * ydirection):
+    for coordy in range(cornery, cornery + (10 * ydirection), 2 * ydirection):
         supply_depot_placement_list.append(Point2((cornerx, coordy)))
     return supply_depot_placement_list
 
@@ -71,7 +127,7 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depot: list):
     tech_buildings_placement_list: Set[Point2] = []
     tech_buildings_placement_list.append(self.main_base_ramp.barracks_correct_placement)
     # shoot vector towards self.start_location
-    direction_vector = get_direction_vector(self,self.start_location, self.main_base_ramp.top_center.position)
+    direction_vector = get_direction_vector(self.start_location, self.main_base_ramp.top_center.position)
     vector_y = round(direction_vector.y)
     vector_x = round(direction_vector.x)
 
@@ -105,14 +161,6 @@ def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -
     1. If all 4 corners of building pass check, returns False\n
     1. This is how we are making the grid for tech buildings\n
     """
-    # pointrange = [-2,2]
-    # for corner_y in pointrange:
-    #             for corner_x in pointrange:
-    #                 if not (self.game_info.pathing_grid[Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))] == 1 and
-    #                         self.get_terrain_z_height(Point2(((temp_point.x)+corner_x, temp_point.y + corner_y))) == starting_height):
-    #                     return True   
-    # return False
-
     corners = temp_point.neighbors4
     for point in corners:
         point = Point2((point))
@@ -139,7 +187,7 @@ def create_vespene_geyser_points(self: BotAI):
                 vg_position_collisions.append(((x,y)))
     return vg_position_collisions
 
-def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
+def get_direction_vector(point1: Point2, point2: Point2):
     """
     Given two Point2 (x,y) locations, return the direction vector
     Example get_direction_vector(self, self.start_location, self.main_base_ramp)
@@ -149,7 +197,7 @@ def get_direction_vector(self: BotAI, point1: Point2, point2: Point2):
     direction_vector = point1.direction_vector(point2)
     return direction_vector
 
-def get_distance(self: BotAI, point1: Point2, point2: Point2):
+def get_distance(point1: Point2, point2: Point2):
     """
     Given two Point2 (x,y) locations, return the distance in units
     Example get_distance(self, self.start_location, self.enemy_start_locations[0])

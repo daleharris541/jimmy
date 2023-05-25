@@ -51,7 +51,6 @@ class ConstructionManager:
         It returns True/False to identify whether it executed or not
         This allows multiple attempts to build without skipping
         """
-        print(f"building {unit_name} at {pos}")
         if (await self.bot.build(UnitTypeId[unit_name], pos)):
             return True
 
@@ -65,7 +64,6 @@ class ConstructionManager:
         for building in self.bot.structures(UnitTypeId[buildingType]).ready.idle:
             if not building.has_add_on:
                 if building(AbilityId[unit_name]):
-                    print("Construction Manager: I built an addon!")
                     return True
                 else:
                     return False
