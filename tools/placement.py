@@ -16,22 +16,26 @@ def depot_positions(self: BotAI):
     direction_vector, starting_point = placement_positions(self)
     offsets = [2, 4, 6, 8]
 
+    for depot in self.main_base_ramp.corner_depots:
+        depot_placements.append(depot)
+
+    depot_placements.append(starting_point)
+
     for offset in offsets:
         depot_placements.append(Point2((int(starting_point.x + (offset * -direction_vector.x)), int(starting_point.y))))
         depot_placements.append(Point2((int(starting_point.x), int(starting_point.y + (offset * -direction_vector.y)))))
     
-    depot_placements.append(starting_point)
     return depot_placements
 
 def building_positions(self: BotAI):
     building_placements: Set[Point2] = []
     direction_vector, starting_point = placement_positions(self)
+    inverse_starting_point = Point2((starting_point.x + (9 *(-direction_vector.x)), starting_point.y + (9 *(-direction_vector.y))))
     starting_height = self.get_terrain_z_height(self.start_location)
     y_offsets = [0, 3, 6, 9, 12, 15, 18, 21, 24]
     x_spacing = [0, 6, 12, 18, 24]
 
-    inverse_starting_point = Point2((starting_point.x + (9 *(-direction_vector.x)), starting_point.y + (9 *(-direction_vector.y))))
-
+    building_placements.append(self.main_base_ramp.barracks_correct_placement)
     vg_positions = create_vespene_geyser_points(self)
 
     for space in x_spacing:

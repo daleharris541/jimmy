@@ -17,15 +17,13 @@ from sc2.game_data import AbilityData, Cost
 
 from managers.BuildOrderManager import fill_build_queue, build_queue
 from managers.ArmyManager import train_unit
-from managers.MicroManager import idle_workers
 from managers.UpgradeManager import research_upgrade
 from managers.CC_Manager import CC_Manager
 from managers.ConstructionManager import ConstructionManager
+from managers.MicroManager import MicroManager
 
 from tools import make_build_order
 from tools import draw_building_points
-from tools.placement import calc_supply_depot_zones, calc_tech_building_zones
-
 from tools.placement import depot_positions, building_positions
 
 #https://burnysc2.github.io/python-sc2/docs/text_files/introduction.html
@@ -41,9 +39,6 @@ class Jimmy(BotAI):
         self.cc_managers = []
         self.worker_pool = 12
 
-        self.failed_steps = []
-        self.built_army_units = []                   # this will have reapers, marines, dropships, etc
-
         self.game_step: int = 2                      # 2 usually, 6 vs human
         self.debug = True
 
@@ -56,6 +51,8 @@ class Jimmy(BotAI):
 
         ### ConstructionManager ###
         self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
+        ### MicroManager ###
+        self.micro_manager = MicroManager(self)
 
     async def on_step(self, iteration):
         ### CC_Manager ###
@@ -70,22 +67,15 @@ class Jimmy(BotAI):
                 self.cc_managers.remove(cc_manager)
             else:
                 await cc_manager.manage_cc()
-        
+
         ### MicroManager ###
-        await idle_workers(self)
+        await self.micro_manager.controller()
 
         ### BuildOrderManager ###
         if self.step < len(self.build_order):
             self.step = fill_build_queue(self.build_order, self.step, self.queue_size)
-        else:
-            #if (self.all_own_units(UnitTypeId.MARINE).count) < 70:
-            #send another army unit type to the queue
-            #unit = self.built_army_units[randrange(1,len(self.built_army_units))]
-                #select random type, add 5 more units
-            #([name, id, type, supply])
-            cost = self.calculate_cost(UnitTypeId.MARINE)
-            for i in range(1,5):
-                self.build_order.append(['MARINE',"10",'unit','150',cost])
+
+        await self.order_distributor(build_queue(self))
         
         for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
             depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
@@ -97,61 +87,6 @@ class Jimmy(BotAI):
             self.client.debug_text_screen(text=str(self.build_order[0]), pos=Point2((0, 0)), color=green, size=18)
             draw_building_points(self, self.supply_depot_placement_list, blue, labels="DEPOT")
             draw_building_points(self, self.tech_buildings_placement_list, green, labels="TechBuilding")
-
-    
-    async def move_army(self, pos):
-        #Gather all types of army units
-        #send to location
-        all_army_units = self.built_army_units
-        for unit_types in all_army_units:
-            boys = self.units(UnitTypeId[unit_types])
-            boys.move(pos)
-        
-    async def on_enemy_unit_entered_vision(self, unit: Unit):
-        """
-        Override this in your bot class. This function is called when an enemy unit (unit or structure) entered vision (which was not visible last frame).
-
-        :param unit:
-        """
-        # Send all units we've sent to be built to meet enemy entered vision
-    
-        all_army_types = self.built_army_units
-        if all_army_types:
-            for unit_type in all_army_types:
-                target, target_is_enemy_unit = self.select_target()
-                attackers: Units = self.units(UnitTypeId[unit_type])
-                unit: Unit
-                for unit in attackers:
-                    # Order the unit to attack-move the target
-                    if target_is_enemy_unit and (unit.is_idle or unit.is_moving):
-                        unit.attack(target)
-                    # Order the units to move to the target, and once the select_target returns an attack-target, change it to attack-move
-                    elif unit.is_idle:
-                        unit.move(target)
-        else:
-            #pull the boys
-            for unit in self.workers:
-                if not unit.is_attacking:
-                    unit.attack(target)
-        
-    def select_target(self) -> Tuple[Point2, bool]:
-        """Select an enemy target the units should attack."""
-        targets: Units = self.enemy_structures
-        if targets:
-            return targets.random.position, True
-
-        targets: Units = self.enemy_units
-        if targets:
-            return targets.random.position, True
-
-        if (self.units and min((u.position.distance_to(self.enemy_start_locations[0]) for u in self.units))< 10):
-            return self.enemy_start_locations[0].position, False
-        
-        return self.mineral_field.random.position, False
-
-    async def on_building_construction_complete(self, unit: Unit):
-        if unit.name == 'CommandCenter':
-            self.move_army(unit.position)
     
     async def order_distributor(self, order):
         if order != None:
@@ -160,10 +95,7 @@ class Jimmy(BotAI):
                     await self.construction_manager.supervisor(order, self.cc_managers)
 
             elif order[2] == 'unit':
-                if order[0] not in self.built_army_units:
-                    self.built_army_units.append(order[0])
                 await train_unit(self, order[0])
-                pass
 
             elif order[2] == 'worker':
                 self.worker_pool += 1

@@ -7,7 +7,7 @@ from sc2.game_data import AbilityData, Cost
 from sc2.dicts.unit_trained_from import UNIT_TRAINED_FROM
 
 next_build_steps = []
-debug = True
+debug = False
 
 def fill_build_queue(build_order: list, step, range):
     if len(next_build_steps) < range:
@@ -20,7 +20,6 @@ def build_queue(self: BotAI):
     available = Cost(self.minerals, self.vespene)
     step_cost = Cost(0,0)
     for step in next_build_steps:
-        #if step[2] == 'action': next_build_steps.remove(step)
         cost: Cost = step[-1]
         if (requirements_check(self, step)):
             if((available.minerals - step_cost.minerals) >= cost.minerals and (available.vespene - step_cost.vespene) >= cost.vespene):
