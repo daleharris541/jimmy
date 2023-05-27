@@ -32,8 +32,8 @@ class CC_Manager:
 
         else:
             self.cc(AbilityId.LIFT)
-            landing_positon = closest_point(self.bot.start_location, self.get_expansion_location())
-            self.cc(AbilityId.LAND, landing_positon)
+            landing_position = closest_point(self.bot.start_location, self.get_expansion_location())
+            self.cc(AbilityId.LAND, landing_position)
 
 ### Functions for Workers
     def get_close_workers(self):
@@ -145,10 +145,10 @@ class CC_Manager:
             closest_mineral_field = self.bot.mineral_field.closest_to(self.cc)
             self.cc(AbilityId.CALLDOWNMULE_CALLDOWNMULE, closest_mineral_field)
 
-    def scanner_sweep(self, postion):
+    def scanner_sweep(self, position):
         """This function scanns at a given location."""
         if self.cc.energy > 50:
-            self.cc(AbilityId.SCANNERSWEEP_SCAN, postion)
+            self.cc(AbilityId.SCANNERSWEEP_SCAN, position)
 
 ### Expansion Location
     def get_expansion_location(self):
