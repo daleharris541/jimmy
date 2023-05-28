@@ -5,6 +5,8 @@ from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
 from sc2.units import Units
 
+import tools.logger_levels as l
+
 class CC_Manager:
 
     def __init__(self, bot: BotAI, townhall: Unit):
@@ -12,6 +14,7 @@ class CC_Manager:
         self.townhall = townhall
         self.sphere_of_influence = 10 
         self.max_worker = 16
+        self.debug = False
 
     async def manage_cc(self):
         """The main function of the CC_Manager that manages the Command Center."""
@@ -55,7 +58,7 @@ class CC_Manager:
 
 ### Functions for Minerals   
     def get_mineral_fields(self):
-        """This function returns the mineral fields in range of the Comand Center."""
+        """This function returns the mineral fields in range of the Command Center."""
         controlled_minerals = Units([], self)
         for mineral_field in self.bot.mineral_field:
             if self.cc.distance_to(mineral_field) < self.sphere_of_influence:
@@ -107,7 +110,7 @@ class CC_Manager:
         for refinery in self.available_refinerys:
             assigned_workers = refinery.assigned_harvesters
             surplus_workers = assigned_workers - 3
-            if assigned_workers < 3:
+            if assigned_workers < 3 and len(self.workers) > 10:
                 worker = self.workers.random
                 worker.gather(refinery)
             elif surplus_workers != 0:
@@ -118,6 +121,8 @@ class CC_Manager:
 ### Upgrade ComandCenter
     def upgrade_orbital_command(self):
         """This function upgrades the Command Center to an Orbital Command."""
+        #TODO Issue is we no longer check can affords before it gets to this point
+        #New build order = ability ID
         if self.cc.is_idle and self.bot.can_afford(UnitTypeId.ORBITALCOMMAND):
             self.cc(AbilityId.UPGRADETOORBITAL_ORBITALCOMMAND)
             return True

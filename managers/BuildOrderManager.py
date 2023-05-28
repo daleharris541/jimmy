@@ -5,27 +5,33 @@ from sc2.ids.upgrade_id import UpgradeId
 from sc2.game_data import Cost
 from sc2.dicts.unit_trained_from import UNIT_TRAINED_FROM
 
-next_build_steps = []
-debug = False
+import tools.logger_levels as l
 
-def fill_build_queue(build_order: list, step, range):
+next_build_steps = []           #this is our hopper that carries 5 orders and attempts to build ahead
+completed_build_steps = []      #this is our original function meant to keep track of what's done
+debug = True
+
+def fill_build_queue(build_order: list, index, range):
     if len(next_build_steps) < range:
-        if step < len(build_order):
-            next_build_steps.append(build_order[step])
-            step += 1
-    return step
+        if index < len(build_order):
+            next_build_steps.append(build_order[index])
+            index += 1
+    return index
 
 def build_queue(self: BotAI):
+    """
+    This function uses next_build_steps as the hopper of 5 orders
+    step as the full order like ['BARRACKSTECHLAB', 'BUILD_TECHLAB_BARRACKS', 'addon', 27, Cost(50, 25)]
+    """
     available = Cost(self.minerals, self.vespene)
     step_cost = Cost(0,0)
     for step in next_build_steps:
-        cost: Cost = step[-1]
+        cost: Cost = step[-1] 
         if (requirements_check(self, step)):
             if((available.minerals - step_cost.minerals) >= cost.minerals and (available.vespene - step_cost.vespene) >= cost.vespene):
-                if debug:
-                    print(next_build_steps)
-                    print(f"Sending {step[0]} to queue")
-                next_build_steps.remove(step)
+                if step[2] != 'structure' and step[2] != 'unit' and step[2] != 'worker' and step[2] != 'upgrade':
+                    l.g.log("CRITICAL",f"Removing {step} from the hopper!")
+                    next_build_steps.remove(step)
                 return step
             else:
                 step_cost += cost
@@ -50,3 +56,25 @@ def requirements_check(self: BotAI, step):
     #TODO #25 Implement a proper lookup for unit type and validate all requirements met
     #/Users/dbh/Library/Python/3.9/lib/python/site-packages/sc2/dicts/unit_train_build_abilities.py
     return can_build
+
+def remove_from_hopper(unit: UnitTypeId):
+    """
+    This function receives an upgrade, building, or army unit that's been trained from the Bot
+    and removes it from the Hopper
+
+    Buildings are slow, but we are notified by BotAI when it's started
+    Upgrades are slow and notified only after completed, but we can also do a upgrade_check to see if it's being actively researched in another way
+    Units are fairly quick, and we are notified by BotAI when completed
+    Addons are not sent out as a "structure"being completed
+    Workers are tracked as Units
+
+    """
+    unit = unit.name
+    completed_build_steps.append(unit)
+    unit = str(unit)
+    for order in next_build_steps:
+        if order[0].find(unit.upper()) > -1:
+            if debug: l.g.log("CRITICAL",f"Hopper should work! Current Hopper Size: {len(next_build_steps)}")
+            next_build_steps.remove(order)
+            if debug: l.g.log("CRITICAL",f"After removing {order[0]}, New Hopper Size: {len(next_build_steps)}")
+            break

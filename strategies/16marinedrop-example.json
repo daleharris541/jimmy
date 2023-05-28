@@ -144,20 +144,20 @@
         "frame": 2687
     },
     {
+        "name": "Refinery",
+        "id": 20,
+        "type": "structure",
+        "supply": 16,
+        "time": "00:44",
+        "frame": 988
+    },
+    {
         "name": "BarracksReactor",
         "id": 38,
         "type": "structure",
         "supply": 21,
         "time": "02:02",
         "frame": 2733
-    },
-    {
-        "name": "Refinery",
-        "id": 20,
-        "type": "structure",
-        "supply": 21,
-        "time": "02:07",
-        "frame": 2856
     },
     {
         "name": "SCV",
@@ -190,6 +190,14 @@
         "supply": 24,
         "time": "02:37",
         "frame": 3533
+    },
+    {
+        "name": "Refinery",
+        "id": 20,
+        "type": "structure",
+        "supply": 16,
+        "time": "00:44",
+        "frame": 988
     },
     {
         "name": "Marine",
@@ -246,6 +254,14 @@
         "supply": 27,
         "time": "02:55",
         "frame": 3933
+    },
+    {
+        "name": "Refinery",
+        "id": 20,
+        "type": "structure",
+        "supply": 16,
+        "time": "00:44",
+        "frame": 988
     },
     {
         "name": "Marine",
@@ -616,14 +632,6 @@
         "frame": 5956
     },
     {
-        "name": "EngineeringBay",
-        "id": 22,
-        "type": "structure",
-        "supply": 62,
-        "time": "04:25",
-        "frame": 5956
-    },
-    {
         "name": "SCV",
         "id": 45,
         "type": "worker",
@@ -662,6 +670,503 @@
         "supply": 65,
         "time": "04:36",
         "frame": 6189
+    },
+    {
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },{
+        "name": "Barracks",
+        "id": 21,
+        "type": "structure",
+        "supply": 21,
+        "time": "01:59",
+        "frame": 2687
+    },
+    {
+        "name": "BarracksReactor",
+        "id": 38,
+        "type": "structure",
+        "supply": 21,
+        "time": "02:02",
+        "frame": 2733
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 65,
+        "time": "04:36",
+        "frame": 6189
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
+    },
+    {
+        "name": "Marine",
+        "id": 48,
+        "type": "unit",
+        "supply": 63,
+        "time": "04:33",
+        "frame": 6128
     },
     {
         "name": "SupplyDepot",

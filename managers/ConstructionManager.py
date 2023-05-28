@@ -3,8 +3,11 @@ from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
-from sc2.position import Point2
+from sc2.position import Point2, Point3
 from typing import Set
+
+from tools.jsonParser import clean_my_face
+import tools.logger_levels as l
 
 class ConstructionManager:
 
@@ -14,13 +17,29 @@ class ConstructionManager:
         self.depot_positions = depot_positions
         self.building_positions = building_positions
         self.building_list = []
+        self.building_command_received = []
+        self.building_list_started = []
+        self.building_list_completed = []
+        self.failed_to_build = []
+        self.debug = True
 
     async def supervisor(self, order, cc_managers: list):
         ### UPDATE VARIABLES ###
         self.building_list.append(order)
-
+        self.building_command_received.append(UnitTypeId[order[0]])
         ### BEHAVIOR ###
-        if ("TECHLAB" or "REACTOR") in order[0]:
+        if len(self.building_command_received) - len(self.building_list_started) > 0:
+            l.g.critical(f"{len(self.building_command_received) - len(self.building_list_started)} buildings yet to be built")
+        if self.debug:
+            l.g.log("CONSTRUCTION", f"Received: {self.building_command_received}")
+            l.g.log("CONSTRUCTION", f"Started:  {self.building_list_started}")
+            l.g.log("CONSTRUCTION", f"Completed:{self.building_list_completed}")
+        
+        
+        if len(self.failed_to_build) > 0:
+            order = self.failed_to_build[0]
+            l.g.log("CONSTRUCTION",f"Retrying to build {order[0]}")
+        if order[2] == "addon":
             if (await self.build_addon(order[1])):
                 return order
             
@@ -41,8 +60,12 @@ class ConstructionManager:
             await self.build_structure(order[0], self.depot_positions[0])
             self.depot_positions.pop(0)
         else:
-            await self.build_structure(order[0], self.building_positions[0])
-            self.building_positions.pop(0)
+            if (await self.build_structure(order[0], self.building_positions[0])):
+                self.building_positions.pop(0)
+            else:
+                self.building_positions.pop(0)
+                self.failed_to_build.append(order)
+                l.g.log("CRITICAL", f"CM:Supervisor: Failed to build {order[0]}")
 
     async def build_structure(self, unit_name, pos=None):
         """
@@ -51,8 +74,13 @@ class ConstructionManager:
         It returns True/False to identify whether it executed or not
         This allows multiple attempts to build without skipping
         """
-        if (await self.bot.build(UnitTypeId[unit_name], pos)):
+        worker = self.bot.select_build_worker(pos)
+        if (worker.build(UnitTypeId[unit_name],pos,can_afford_check=False)):
             return True
+        else:
+            l.g.log("CRITICAL", f"CM:build_structure: We failed to build a {unit_name} at {pos}")
+            self.building_positions.append(pos)
+            return False
 
     async def build_addon(self, unit_name):
         """
@@ -69,7 +97,7 @@ class ConstructionManager:
                     return False
                 
     async def build_expansion(self):
-        """This function looks for the neares expansion location."""
+        """This function looks for the nearest expansion location."""
         used_positions = []
         all_positions = self.bot.expansion_locations_list
         available_positions = []
@@ -89,7 +117,17 @@ class ConstructionManager:
 
     # works for addons
     async def on_building_construction_started(self, unit: Unit):
-        pass
+        name = unit.name.upper()
+        for command in self.building_command_received:
+            command = str(command)
+            if command.find(name) > -1:
+                self.building_command_received.remove(UnitTypeId[name])
+                self.building_list_started.append(UnitTypeId[name])
+                l.g.log("CONSTRUCTION", f"Removing {name} from the list")
+
 
     async def on_building_construction_complete(self, unit: Unit):
-        pass
+        name = unit.name.upper()
+        if name in self.building_list_started:
+            self.building_list_started.remove(UnitTypeId[name])
+            self.building_list_completed.append(UnitTypeId[name])

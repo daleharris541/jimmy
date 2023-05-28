@@ -6,8 +6,9 @@ from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
 
+import tools.logger_levels as l
 
-class MicroManager:
+class MicroManager():
 
     def __init__(self, bot: BotAI):
         self.bot = bot
@@ -15,7 +16,6 @@ class MicroManager:
 
     async def controller(self):
         self.idle_workers()
-
 
     def idle_workers(self):
         if len(self.bot.townhalls) > 0 and len(self.bot.workers) > 0:
@@ -28,14 +28,16 @@ class MicroManager:
     async def move_army(self, pos):
         #Gather all types of army units
         #send to location
-        all_army_units = self.built_army_units
-        for unit_types in all_army_units:
+        units = self.built_army_units
+        for unit_types in units:
+            #TODO #33 Include logic to create subgroups of unit types (bio, air, and more granular: marines, bcs, etc)
+            #TODO #34 Include logic to ensure we aren't grabbing unit types that are empty
             boys = self.bot.units(UnitTypeId[unit_types])
             boys.move(pos)
         
     async def on_enemy_unit_entered_vision(self, unit: Unit):
         """
-        Override this in your bot class. This function is called when an enemy unit (unit or structure) entered vision (which was not visible last frame).
+        This function is called when an enemy unit (unit or structure) entered vision (which was not visible last frame).
 
         :param unit:
         """
@@ -76,5 +78,8 @@ class MicroManager:
         return self.bot.mineral_field.random.position, False
 
     async def on_building_construction_complete(self, unit: Unit):
-        if unit.name == 'CommandCenter':
-            self.move_army(unit.position)
+        #print(f"MM: Building Construction Complete: {unit}")
+        #print(f"Building Construction Complete: {unit}")
+        #if unit.name == 'CommandCenter':
+            #self.move_army(unit.position)
+        pass

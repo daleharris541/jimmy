@@ -1,5 +1,6 @@
 from sc2.bot_ai import BotAI
 from sc2.position import Point2
+from sc2.units import UnitTypeId
 from typing import Set
 
 def placement_positions(self: BotAI):
@@ -14,7 +15,7 @@ def placement_positions(self: BotAI):
 def depot_positions(self: BotAI):
     depot_placements: Set[Point2] = []
     direction_vector, starting_point = placement_positions(self)
-    offsets = [2, 4, 6, 8]
+    offsets = [2, 4, 6, 8, 10, 12, 14]
 
     for depot in self.main_base_ramp.corner_depots:
         depot_placements.append(depot)
@@ -45,7 +46,6 @@ def building_positions(self: BotAI):
                 building_placements.append(point)
 
     valid_placements = filter_points(Point2((starting_point.x + (1 * direction_vector.x), starting_point.y+ (1 * direction_vector.y))), Point2((-direction_vector.x, -direction_vector.y)), building_placements)
-
     return valid_placements
 
 def filter_points(reference_point: Point2, vektor: Point2, points: Set[Point2]):
@@ -149,6 +149,7 @@ def calc_tech_building_zones(self: BotAI, corner_supply_depot: list):
             vpoint = Point2(((corner_supply_depot.x + (offset * vector_x)), axis_y))
             if not (vpoint in vg_positions or invalid_positions(self, vpoint, starting_height)):
                 tech_buildings_placement_list.append(vpoint)
+    
     return tech_buildings_placement_list
 
 def invalid_positions(self: BotAI, temp_point: Point2, starting_height: float) -> bool:

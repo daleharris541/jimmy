@@ -22,6 +22,7 @@ def make_build_order(filepath):
     #tech_requirement_progress(self, structure_type: UnitTypeId) -> float:
     # Returns the tech requirement progress for a specific building
     # we only want structures being done this way
+    #Types are unit, structure, upgrade, worker, addon, cc
     for key in build:
         uppercase = key['name']
         name = uppercase.upper()
@@ -31,40 +32,45 @@ def make_build_order(filepath):
         time = key['time']
         frame = key['frame']
         
-        if type == 'upgrade':
-            if name == 'STIMPACK':
-                id = 'BARRACKSTECHLABRESEARCH_STIMPACK'
-        elif 'TECHLAB' in name:
-            if name[:8] == 'BARRACKS':
-                id = 'BUILD_TECHLAB_BARRACKS'
-                type = 'addon'
-            elif name[:7] == 'FACTORY':
-                id = "BUILD_TECHLAB_FACTORY"
-                type = 'addon'
-            elif name[:8] == 'STARPORT':
-                id = "BUILD_TECHLAB_STARPORT"
-                type = 'addon'
+        name, id, type = clean_my_face(name, type, id)
         
-        elif 'REACTOR' in name:
-            if name[:8] == 'BARRACKS':
-                id = 'BUILD_REACTOR_BARRACKS'
-                type = 'addon'
-            elif name[:7] == 'FACTORY':
-                id = "BUILD_REACTOR_FACTORY"
-                type = 'addon'
-            elif name[:8] == 'STARPORT':
-                id = "BUILD_REACTOR_STARPORT"
-                type = 'addon'
-
-        elif name == 'ORBITALCOMMND':
-            name = 'UPGRADETOORBITAL_ORBITALCOMMAND'
-            type = 'addon' 
-
-        elif name == 'PLANETARYFORTRESS':
-            name = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
-            type = 'addon' 
         
         if type != 'action':
             build_order.append([name, id, type, supply])
 
     return build_order
+
+def clean_my_face(name, type, id):
+    if type == 'upgrade':
+        if name == 'STIMPACK':
+            id = 'BARRACKSTECHLABRESEARCH_STIMPACK'
+    elif 'TECHLAB' in name:
+        if name[:8] == 'BARRACKS':
+            id = 'BUILD_TECHLAB_BARRACKS'
+            type = 'addon'
+        elif name[:7] == 'FACTORY':
+            id = "BUILD_TECHLAB_FACTORY"
+            type = 'addon'
+        elif name[:8] == 'STARPORT':
+            id = "BUILD_TECHLAB_STARPORT"
+            type = 'addon'
+    
+    elif 'REACTOR' in name:
+        if name[:8] == 'BARRACKS':
+            id = 'BUILD_REACTOR_BARRACKS'
+            type = 'addon'
+        elif name[:7] == 'FACTORY':
+            id = "BUILD_REACTOR_FACTORY"
+            type = 'addon'
+        elif name[:8] == 'STARPORT':
+            id = "BUILD_REACTOR_STARPORT"
+            type = 'addon'
+
+    elif name == 'ORBITALCOMMAND':
+        id = 'UPGRADETOORBITAL_ORBITALCOMMAND'
+        type = 'cc' 
+
+    elif name == 'PLANETARYFORTRESS':
+        id = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
+        type = 'cc' 
+    return (name, id, type)
