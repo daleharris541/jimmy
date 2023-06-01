@@ -25,7 +25,7 @@ class MicroManager():
                 mineral = self.bot.mineral_field.closest_to(townhall)
                 worker.gather(mineral)
 
-    async def move_army(self, pos):
+    def move_army(self, pos):
         #Gather all types of army units
         #send to location
         units = self.built_army_units
@@ -35,7 +35,7 @@ class MicroManager():
             boys = self.bot.units(UnitTypeId[unit_types])
             boys.move(pos)
         
-    async def on_enemy_unit_entered_vision(self, unit: Unit):
+    def on_enemy_unit_entered_vision(self, unit: Unit):
         """
         This function is called when an enemy unit (unit or structure) entered vision (which was not visible last frame).
 
@@ -77,7 +77,7 @@ class MicroManager():
         
         return self.bot.mineral_field.random.position, False
 
-    async def on_building_construction_complete(self, unit: Unit):
+    def on_building_construction_complete(self, unit: Unit):
         #print(f"MM: Building Construction Complete: {unit}")
         #print(f"Building Construction Complete: {unit}")
         #if unit.name == 'CommandCenter':

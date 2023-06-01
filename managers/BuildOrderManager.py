@@ -29,7 +29,7 @@ def build_queue(self: BotAI):
         cost: Cost = step[-1] 
         if (requirements_check(self, step)):
             if((available.minerals - step_cost.minerals) >= cost.minerals and (available.vespene - step_cost.vespene) >= cost.vespene):
-                if step[2] != 'structure' and step[2] != 'unit' and step[2] != 'worker' and step[2] != 'upgrade':
+                if step[3] != 'structure' and step[3] != 'unit' and step[3] != 'worker' and step[3] != 'upgrade':
                     l.g.log("CRITICAL",f"Removing {step} from the hopper!")
                     next_build_steps.remove(step)
                 return step
@@ -38,17 +38,17 @@ def build_queue(self: BotAI):
   
 def requirements_check(self: BotAI, step):
     can_build = False
-    if step[2] == 'structure' or step[2] == 'addon' or step[2] == 'commandcenter':
+    if step[3] == 'structure' or step[3] == 'addon' or step[3] == 'commandcenter':
         if self.tech_requirement_progress(UnitTypeId[step[0]]) == 1:
             can_build = True
-    elif step[2] == 'worker':
+    elif step[3] == 'worker':
         if self.supply_left > 0:
             can_build = True
-    elif step[2] == 'upgrade':
+    elif step[3] == 'upgrade':
         if self.research(UpgradeId[step[0]]):
             can_build = True
-    elif step[2] == 'unit':
-        train_structure_type = UNIT_TRAINED_FROM[UnitTypeId[step[0]]]
+    elif step[3] == 'unit':
+        train_structure_type = UNIT_TRAINED_FROM[UnitTypeId[step[0]]]       #This step could be added to the jsonParser
         building_name = str(train_structure_type).strip("{}").split(".")[1]
         if self.structures(UnitTypeId[building_name]).ready and self.supply_left >= self.calculate_supply_cost(UnitTypeId[step[0]]):
             can_build = True

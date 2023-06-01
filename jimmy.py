@@ -47,9 +47,10 @@ class Jimmy(BotAI):
     async def on_start(self):
         ### Build Order ###
         build_order_cost(self, self.build_order)
+        print(self.build_order)
         if self.debug: l.g.log("BUILD", self.build_order)
         for order in self.build_order:
-            if order[2] == 'upgrade': self.upgrades.append(order[0])
+            if order[3] == 'upgrade': self.upgrades.append(order[2])
         if self.debug: l.g.log("BUILD", f"Upgrades list: {self.upgrades}")
 
         ### Building Placement ###
@@ -106,19 +107,19 @@ class Jimmy(BotAI):
     async def order_distributor(self, order):
         if order != None:
 
-            if order[2] == 'structure' or order[2] == 'addon':
+            if order[3] == 'structure' or order[3] == 'addon' or order[3] == 'commandcenter':
                     await self.construction_manager.supervisor(order, self.cc_managers)
 
-            elif order[2] == 'unit':
+            elif order[3] == 'unit':
                 await train_unit(self, order[0])
 
-            elif order[2] == 'worker':
+            elif order[3] == 'worker':
                 self.worker_pool += 1
                 for manager in self.cc_managers:
                     if await manager.train_worker(self.worker_pool):
                         break
 
-            elif order[2] == 'upgrade':
+            elif order[3] == 'upgrade':
                 await research_upgrade(self, order[0])
     
     #Following functions are called and happen asynchronously as an underlying interrupt function
@@ -134,7 +135,7 @@ class Jimmy(BotAI):
         """
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} started building")
-        await self.construction_manager.on_building_construction_started(unit)
+        self.construction_manager.construction_started(unit)
         remove_from_hopper(unit)
 
     async def on_building_construction_complete(self, unit: Unit):
@@ -145,8 +146,9 @@ class Jimmy(BotAI):
         """
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} completed building")
-        await self.construction_manager.on_building_construction_complete(unit)
-        await self.micro_manager.on_building_construction_complete(unit)
+        self.construction_manager.construction_complete(unit)
+        self.micro_manager.on_building_construction_complete(unit)
+
     async def on_upgrade_complete(self, upgrade: UpgradeId):
         """
         Override this in your bot class. This function is called with the upgrade id of an upgrade that was not finished last step and is now.
@@ -156,6 +158,7 @@ class Jimmy(BotAI):
         if self.debug:
             l.g.log("UPGRADE", f"Self Bot AI just told me I finished researching {upgrade}")
         remove_from_hopper(upgrade)
+
     async def on_unit_created(self, unit: Unit):
         """Override this in your bot class. This function is called when a unit is created.
 
@@ -163,6 +166,7 @@ class Jimmy(BotAI):
         if self.debug:
             l.g.log("ARMY", f"Self Bot AI just told me I finished creating a {unit}")
         remove_from_hopper(unit)
+
     async def on_enemy_unit_entered_vision(self, unit: Unit):
         """
         This function will always be called whenever a building completes.
@@ -175,12 +179,12 @@ class Jimmy(BotAI):
     #end Bot Class
 def build_order_cost(self: BotAI, build_order):
     for order in build_order:
-        if order[2] == 'unit' or order[2] == 'worker' or order[2] == 'structure':
+        if order[3] == 'unit' or order[3] == 'worker' or order[3] == 'structure':
             order.append(self.calculate_cost(UnitTypeId[order[0]]))
-        elif order[2] == 'addon':
+        elif order[3] == 'addon' or order[3] == 'commandcenter':
             order.append(self.calculate_cost(AbilityId[order[1]]))
-        elif order[2] == 'upgrade':
-            order.append(self.calculate_cost(UpgradeId[order[0]]))
+        elif order[3] == 'upgrade':
+            order.append(self.calculate_cost(UpgradeId[order[2]]))
         else:
             order.append(Cost(0,0))
 
@@ -197,7 +201,7 @@ def update_unit_list(units, type):
     unit_list = []
     for unit in units:
         found = False
-        if unit[2] == type:
+        if unit[3] == type:
             for item in unit_list:
                 if item['name'] == unit[0]:
                     item['quantity'] += 1
@@ -211,7 +215,7 @@ def main():
     run_game(
         maps.get("HardwireAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=True,
+        realtime=False,
     )
 
 if __name__ == "__main__":
