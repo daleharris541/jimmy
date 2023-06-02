@@ -10,7 +10,7 @@ from sc2.ids.upgrade_id import UpgradeId
 from sc2.main import run_game
 from sc2.player import Bot, Computer
 from sc2.position import Point2, Point3
-from sc2.unit import Unit
+from sc2.unit import Unit, RallyTarget
 from sc2.units import Units
 from sc2.game_data import AbilityData, Cost
 
@@ -144,8 +144,10 @@ class Jimmy(BotAI):
         
         :param is unit/building:
         """
+        tag = unit.tag
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} completed building")
+        # Maybe use RallyTarget(ramp bottom or expansion offset towards enemy,tag)
         self.construction_manager.construction_complete(unit)
         self.micro_manager.on_building_construction_complete(unit)
 

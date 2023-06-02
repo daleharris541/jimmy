@@ -74,6 +74,7 @@ class ConstructionManager:
         It returns True/False to identify whether it executed or not
         This allows multiple attempts to build without skipping
         """
+        #This would change to instantiating a class from StructureClass
         worker = self.bot.select_build_worker(pos)
         if (worker.build(UnitTypeId[unit_name],pos,can_afford_check=False)):
             return True
@@ -122,7 +123,6 @@ class ConstructionManager:
                 self.building_command_received.remove(UnitTypeId[name])
                 self.building_list_started.append(UnitTypeId[name])
                 l.g.log("CONSTRUCTION", f"Removing {name} from the list")
-
 
     def construction_complete(self, unit: Unit):
         name = unit.name.upper()

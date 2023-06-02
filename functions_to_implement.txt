@@ -85,3 +85,47 @@ async def on_before_start(self):
     Not all data is available yet.
     This function is useful in realtime=True mode to split your workers or start producing the first worker.
     """`
+
+    UnitTypeData
+    @property
+    def tech_alias(self) -> Optional[List[UnitTypeId]]:
+        """Building tech equality, e.g. OrbitalCommand is the same as CommandCenter
+        Building tech equality, e.g. Hive is the same as Lair and Hatchery
+        For Hive, this returns [UnitTypeId.Hatchery, UnitTypeId.Lair]
+        For SCV, this returns None"""
+        return_list = [
+            UnitTypeId(tech_alias) for tech_alias in self._proto.tech_alias if tech_alias in self._game_data.units
+        ]
+        return return_list if return_list else None
+
+    @property
+    def unit_alias(self) -> Optional[UnitTypeId]:
+        """ Building type equality, e.g. FlyingOrbitalCommand is the same as OrbitalCommand """
+        if self._proto.unit_alias == 0:
+            return None
+        if self._proto.unit_alias not in self._game_data.units:
+            return None
+        """ For flying OrbitalCommand, this returns UnitTypeId.OrbitalCommand """
+        return UnitTypeId(self._proto.unit_alias)
+
+
+Class AbilityData under game_data.py
+        @property
+    def exact_id(self) -> AbilityId:
+        """ Returns the exact ID of the ability """
+        return AbilityId(self._proto.ability_id)
+
+    @property
+    def link_name(self) -> str:
+        """ For Stimpack this returns 'BarracksTechLabResearch' """
+        return self._proto.link_name
+
+    @property
+    def button_name(self) -> str:
+        """ For Stimpack this returns 'Stimpack' """
+        return self._proto.button_name
+
+    @property
+    def friendly_name(self) -> str:
+        """ For Stimpack this returns 'Research Stimpack' """
+        return self._proto.friendly_name

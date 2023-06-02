@@ -45,12 +45,10 @@ def requirements_check(self: BotAI, step):
         if self.supply_left > 0:
             can_build = True
     elif step[3] == 'upgrade':
-        if self.research(UpgradeId[step[0]]):
+        if self.research(UpgradeId[step[2]]):
             can_build = True
     elif step[3] == 'unit':
-        train_structure_type = UNIT_TRAINED_FROM[UnitTypeId[step[0]]]       #This step could be added to the jsonParser
-        building_name = str(train_structure_type).strip("{}").split(".")[1]
-        if self.structures(UnitTypeId[building_name]).ready and self.supply_left >= self.calculate_supply_cost(UnitTypeId[step[0]]):
+        if self.structures(UnitTypeId[step[4]]).ready and self.supply_left >= self.calculate_supply_cost(UnitTypeId[step[0]]):
             can_build = True
     #train_structure_type: Set[UnitTypeId] = UNIT_TRAINED_FROM[step[0]]
     #TODO #25 Implement a proper lookup for unit type and validate all requirements met
