@@ -53,24 +53,24 @@ def requirements_check(self: BotAI, step):
     #/Users/dbh/Library/Python/3.9/lib/python/site-packages/sc2/dicts/unit_train_build_abilities.py
     return can_build
 
-def remove_from_hopper(unit: UnitTypeId):
-    """
-    This function receives an upgrade, building, or army unit that's been trained from the Bot
-    and removes it from the Hopper
+# def remove_from_hopper(unit: UnitTypeId):
+#     """
+#     This function receives an upgrade, building, or army unit that's been trained from the Bot
+#     and removes it from the Hopper
 
-    Buildings are slow, but we are notified by BotAI when it's started
-    Upgrades are slow and notified only after completed, but we can also do a upgrade_check to see if it's being actively researched in another way
-    Units are fairly quick, and we are notified by BotAI when completed
-    Addons are not sent out as a "structure"being completed
-    Workers are tracked as Units
+#     Buildings are slow, but we are notified by BotAI when it's started
+#     Upgrades are slow and notified only after completed, but we can also do a upgrade_check to see if it's being actively researched in another way
+#     Units are fairly quick, and we are notified by BotAI when completed
+#     Addons are not sent out as a "structure"being completed
+#     Workers are tracked as Units
 
-    """
-    unit = unit.name
-    completed_build_steps.append(unit)
-    unit = str(unit)
-    for order in next_build_steps:
-        if order[0].find(unit.upper()) > -1:
-            if debug: l.g.log("CRITICAL",f"Hopper should work! Current Hopper Size: {len(next_build_steps)}")
-            next_build_steps.remove(order)
-            if debug: l.g.log("CRITICAL",f"After removing {order[0]}, New Hopper Size: {len(next_build_steps)}")
-            break
+#     """
+#     unit = unit.name
+#     completed_build_steps.append(unit)
+#     unit = str(unit)
+#     for order in next_build_steps:
+#         if order[0].find(unit.upper()) > -1:
+#             if debug: l.g.log("CRITICAL",f"Hopper should work! Current Hopper Size: {len(next_build_steps)}")
+#             next_build_steps.remove(order)
+#             if debug: l.g.log("CRITICAL",f"After removing {order[0]}, New Hopper Size: {len(next_build_steps)}")
+#             break
