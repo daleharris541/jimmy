@@ -30,7 +30,7 @@ class CC_Manager:
             if self.cc.name == 'OrbitalCommand':
                 self.call_down_mule()
 
-            if len(self.available_refinerys) > 0:
+            if len(self.available_refinerys) > 0 and len(self.workers) > 15:
                 self.assign_workers_to_refinery()
 
         else:
@@ -40,7 +40,7 @@ class CC_Manager:
 
 ### Functions for Workers
     def get_close_workers(self):
-        """This function returns a list of all wokers in range of the Command Center"""
+        """This function returns a list of all workers in range of the Command Center"""
         controlled_worker = Units([], self)
         for worker in self.bot.workers:
             if self.cc.distance_to(worker) < self.sphere_of_influence:
@@ -114,7 +114,7 @@ class CC_Manager:
                 worker = self.workers.random
                 worker.gather(refinery)
             elif surplus_workers != 0:
-                for worker in self.workers: #list should only contain workers who are gathering minerals or return with minerals
+                for worker in self.workers: #list should only contain workers who are gathering minerals or returning with minerals
                     if worker.order_target == refinery.tag:
                         worker.gather(self.available_minerals.random)   
 

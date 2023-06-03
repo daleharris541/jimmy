@@ -20,6 +20,7 @@ from managers.UpgradeManager import research_upgrade
 from managers.CC_Manager import CC_Manager
 from managers.ConstructionManager import ConstructionManager
 from managers.MicroManager import MicroManager
+from managers.StructureClass import Structure
 
 from tools import make_build_order
 from tools import draw_building_points
@@ -40,6 +41,7 @@ class Jimmy(BotAI):
         self.cc_managers = []                       # Instantiate all CC Class Managers in here
         self.worker_pool = 16                       # Total workers per CC
         self.workers_required = []                  # Total Workers from Build Order
+        self.structure_tracker = []                 # List of all structures built from the class
 
         self.game_step: int = 2                      # 2 usually, 6 vs human
         self.debug = True
@@ -74,14 +76,18 @@ class Jimmy(BotAI):
         cc_list = self.townhalls.ready
         for cc in cc_list:
             if not any(cc_manager.townhall.tag == cc.tag for cc_manager in self.cc_managers):
-                cc_manager = CC_Manager(self, cc)
-                self.cc_managers.append(cc_manager)
+                #cc_manager = 
+                self.cc_managers.append(CC_Manager(self, cc))
 
         for cc_manager in self.cc_managers:
             if cc_manager.townhall.tag not in self.townhalls.tags:
                 self.cc_managers.remove(cc_manager)
             else:
                 await cc_manager.manage_cc()
+
+        ### Structure_Class ###
+        for structure in self.structure_tracker:
+            await structure.manage_structure()
 
         ### BuildOrderManager ###
         if self.step_index < len(self.build_order):
@@ -107,8 +113,17 @@ class Jimmy(BotAI):
     async def order_distributor(self, order):
         if order != None:
 
-            if order[3] == 'structure' or order[3] == 'addon' or order[3] == 'commandcenter':
+            if order[3] == 'addon' or order[3] == 'commandcenter':
                     await self.construction_manager.supervisor(order, self.cc_managers)
+
+            elif order[3] == 'structure':
+                if order[0] == 'SUPPLYDEPOT':
+                    print(f"Attempting to build supply depot at {self.supply_depot_placement_list[0]}")
+                    self.structure_tracker.append(Structure(self,order[0], self.supply_depot_placement_list[0]))
+                    self.supply_depot_placement_list.pop(0)
+                else:
+                    self.structure_tracker.append(Structure(self,order[0], self.tech_buildings_placement_list[0]))
+                    self.tech_buildings_placement_list.pop(0)
 
             elif order[3] == 'unit':
                 await train_unit(self, order[0])
@@ -120,7 +135,7 @@ class Jimmy(BotAI):
                         break
 
             elif order[3] == 'upgrade':
-                await research_upgrade(self, order[0])
+                await research_upgrade(self, order[1])
     
     #Following functions are called and happen asynchronously as an underlying interrupt function
     #from the BotAI - This will be something that happens outside of normal step function for the Bot
@@ -135,8 +150,14 @@ class Jimmy(BotAI):
         """
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} started building")
-        self.construction_manager.construction_started(unit)
-        remove_from_hopper(unit)
+        
+        for str in self.structure_tracker:
+            if str.tag == None:
+                str.assign_tag(unit)
+        
+        #send the update to the proper building that we started so we can update the variable
+        #self.construction_manager.construction_started(unit)
+        #remove_from_hopper(unit)
 
     async def on_building_construction_complete(self, unit: Unit):
         """
@@ -181,7 +202,7 @@ class Jimmy(BotAI):
     #end Bot Class
 def build_order_cost(self: BotAI, build_order):
     for order in build_order:
-        if order[3] == 'unit' or order[3] == 'worker' or order[3] == 'structure':
+        if order[3] == 'unit' or order[3] == 'worker' or order[3] == 'structure' or order[0] == 'REFINERY':
             order.append(self.calculate_cost(UnitTypeId[order[0]]))
         elif order[3] == 'addon' or order[3] == 'commandcenter':
             order.append(self.calculate_cost(AbilityId[order[1]]))
@@ -217,7 +238,7 @@ def main():
     run_game(
         maps.get("HardwireAIE"),
         [Bot(Race.Terran, Jimmy()), Computer(Race.Zerg, Difficulty.Easy)],
-        realtime=False,
+        realtime=True,
     )
 
 if __name__ == "__main__":

@@ -56,16 +56,12 @@ class ConstructionManager:
         elif order[0] == 'COMMANDCENTER':
             await self.build_expansion()    #under threat check
 
-        elif order[0] == 'SUPPLYDEPOT':
-            await self.build_structure(order[0], self.depot_positions[0])
-            self.depot_positions.pop(0)
-        else:
-            if (await self.build_structure(order[0], self.building_positions[0])):
-                self.building_positions.pop(0)
-            else:
-                self.building_positions.pop(0)
-                self.failed_to_build.append(order)
-                l.g.log("CRITICAL", f"CM:Supervisor: Failed to build {order[0]}")
+        # elif order[0] == 'SUPPLYDEPOT':
+        #     await self.build_structure(order[0], self.depot_positions[0])
+        #     self.depot_positions.pop(0)
+        # else:
+        #     if (await self.build_structure(order[0], self.building_positions[0])):
+        #         self.building_positions.pop(0)
 
     async def build_structure(self, unit_name, pos=None):
         """
@@ -75,13 +71,10 @@ class ConstructionManager:
         This allows multiple attempts to build without skipping
         """
         #This would change to instantiating a class from StructureClass
-        worker = self.bot.select_build_worker(pos)
-        if (worker.build(UnitTypeId[unit_name],pos,can_afford_check=False)):
-            return True
-        else:
-            l.g.log("CRITICAL", f"CM:build_structure: We failed to build a {unit_name} at {pos}")
-            self.building_positions.append(pos)
-            return False
+        #worker = self.bot.select_build_worker(pos)
+        #create instance of structure class with proper variables
+        #worker.build(UnitTypeId[unit_name],pos,can_afford_check=False)
+        
 
     async def build_addon(self, unit, ability):
         """

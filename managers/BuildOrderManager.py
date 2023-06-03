@@ -29,9 +29,7 @@ def build_queue(self: BotAI):
         cost: Cost = step[-1] 
         if (requirements_check(self, step)):
             if((available.minerals - step_cost.minerals) >= cost.minerals and (available.vespene - step_cost.vespene) >= cost.vespene):
-                if step[3] != 'structure' and step[3] != 'unit' and step[3] != 'worker' and step[3] != 'upgrade':
-                    l.g.log("CRITICAL",f"Removing {step} from the hopper!")
-                    next_build_steps.remove(step)
+                next_build_steps.remove(step)
                 return step
             else:
                 step_cost += cost

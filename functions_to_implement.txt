@@ -56,6 +56,8 @@ async def on_unit_took_damage(self, unit: Unit, amount_damage_taken: float):
     :param unit:
     :param amount_damage_taken:
     """
+    if unit matches building, update under attack to building tag
+    if unit is army, respond with micromanager
 
 async def on_enemy_unit_entered_vision(self, unit: Unit):
     """
@@ -85,6 +87,21 @@ async def on_before_start(self):
     Not all data is available yet.
     This function is useful in realtime=True mode to split your workers or start producing the first worker.
     """`
+
+
+>>> import enum
+>>> class Test(enum.Enum):
+...     SomeConst = 1
+... 
+>>> your_variable = Test.SomeConst
+>>> print(your_variable.name)
+SomeConst
+>>> print(your_variable.value)
+1
+
+not sure if this helps you
+.name should give you the name as string, while the value is an integer
+
 
     UnitTypeData
     @property

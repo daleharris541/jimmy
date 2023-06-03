@@ -1,10 +1,6 @@
 import json
 from sc2.ids.unit_typeid import UnitTypeId
-from sc2.ids.upgrade_id import UpgradeId
-from sc2.game_data import Cost, UnitTypeData, AbilityData
 from sc2.dicts.unit_trained_from import UNIT_TRAINED_FROM
-#from sc2.dicts.unit_trained_from import UNIT_TRAINED_FROM
-
 
 def make_build_order(filepath):
     build_order = []
@@ -29,7 +25,6 @@ def make_build_order(filepath):
     # Returns the tech requirement progress for a specific building
     # we only want structures being done this way
     #Types are unit, structure, upgrade, worker, addon, cc
-    print(AbilityData.id_exists(16))
 
     for key in build:
         uppercase = key['name']
@@ -90,6 +85,10 @@ def make_build_order(filepath):
         elif name == 'PLANETARYFORTRESS':
             ability = 'UPGRADETOPLANETARYFORTRESS_PLANETARYFORTRESS'
             type = 'commandcenter'
+            
+        elif name == 'REFINERY':
+            type = 'commandcenter'
+
         elif type == 'unit':
             train_structure_type = UNIT_TRAINED_FROM[UnitTypeId[name]]
             builtfrom = str(train_structure_type).strip("{}").split(".")[1]
