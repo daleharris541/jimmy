@@ -27,98 +27,117 @@ class Structure:
     def __init__(self, bot: BotAI, building_name, pos: Point2):
         self.bot = bot
         self.pos = pos                              #position where building is originally built
-        self.scv = self.get_new_scv()
+        self.scv = self.get_new_scv()               #upon init, grabbed closest SCV mining
         self.scv_required = True
         self.scv_previous_dist = get_distance(self.scv.position,self.pos)
         self.scv_current_dist = get_distance(self.scv.position,self.pos)
         self.scv_stalled_count = 0
         self.building_name = building_name
-        self.tag = None
+        self.tag = None                             #building tag
         self.priority = None
         self.buildstatus = "RECEIVED"               #Received, started, incomplete, completed, damaged, destroyed
         self.no_scv_building = False
         self.damaged = False
-        self.debug = True
+        self.debug = False
 
     async def manage_structure(self):
         """The main function of the Structure class"""
-        ### UPDATE VARIABLES ###
-        self.scv = self.bot.workers.find_by_tag(self.scv.tag)
-        self.scv_previous_dist = self.scv_current_dist
-        self.scv_current_dist = get_distance(self.scv.position,self.pos)
-        #self.tag = self.scv.orders[0]
-        #if SCV doesn't show up in list of workers, it's dead, so don't do anything to cause crashing
-        if self.scv in self.bot.workers and self.scv_required == True:
-            ### BEHAVIOR ###
-            if self.buildstatus == "RECEIVED":
-                #build structure, doesn't exist right now
-                
-                self.scv.build(UnitTypeId[self.building_name],self.pos,can_afford_check=False)
-                
-
-                l.g.log("BUILD", f"We are in RECEIVED STATUS and SCV is {self.scv_current_dist} units away")
-                #print(self.scv.orders[0],self.tag)
-                if self.scv_previous_dist == self.scv_current_dist:
-                    self.scv_stalled_count += 1
-                    print(self.scv_stalled_count)
-                    l.g.log("BUILD","Stalled worker!!!")
-                    if self.scv_stalled_count >= 10:
-                        #our SCV is no longer coming, get a new SCV
-                        self.scv.stop
-                        self.scv_stalled_count = 0
-                        self.scv = self.get_new_scv()
-                if self.tag != None:
-                    self.buildstatus = "STARTED"
-            elif self.buildstatus == "STARTED":
-                #assign the tag of the structure to the class
-                l.g.log("BUILD","Celebrate if you got here")
-                pass
-            elif self.buildstatus == "INCOMPLETE":
-                pass
+        if self.scv_required == True:
+            self.pre_build_phase()
         else:
-            #he's dead, get a new SCV assigned
-            self.scv = self.get_new_scv()
-            self.scv_stalled_count = 0
-        if self.buildstatus == "COMPLETED":
-            self.scv_required = False
-            pass
-        elif self.buildstatus == "DAMAGED":
-            pass
-        elif self.buildstatus == "DESTROYED":
-            pass
+            if self.buildstatus == "COMPLETED":
+                self.completed_building()
+            elif self.buildstatus == "DAMAGED":
+                self.building_took_damage()
+            elif self.buildstatus == "DESTROYED":
+                self.building_destroyed()
 
 
 ### Functions for SCVs to build the structure with multiple failures/unforeseen circumstances
+    def pre_build_phase(self):
+        #l.g.log("BUILD",f"Prebuild Structure: {self.building_name, self.pos}")
+        #l.g.log("BUILD", f"Build status: {self.buildstatus}")
+        if self.scv in self.bot.workers:
+            self.update_scv()
+            self.update_distance()
+            ### BEHAVIOR ###
+            if self.buildstatus == "RECEIVED":
+                #if self.building_name not in self.scv.orders():
+                    #build structure, doesn't exist right now
+                self.scv.build(UnitTypeId[self.building_name],self.pos,can_afford_check=True)
+                if self.debug: print(self.scv.orders,self.pos)
+                if self.scv_previous_dist == self.scv_current_dist:
+                    self.scv_stalled_count += 1
+                    if self.debug: print(get_distance(self.scv.position,self.pos))
+                    if self.debug: print(self.scv_stalled_count)
+                    if self.scv_stalled_count >= 10:
+                        #our SCV is stuck somehow, get a new SCV
+                        self.scv.stop()
+                        self.scv_stalled_count = 0
+                        self.scv = self.get_new_scv()
+                #Break out of the loop by waiting until a tag is assigned upon construction started
+                if self.tag != None:
+                    self.buildstatus = "STARTED"
+            elif self.buildstatus == "STARTED":
+                self.started_building()
+            elif self.buildstatus == "INCOMPLETE":
+                self.no_scv_building = True
+                self.scv = self.get_new_scv()
+                pass
+        else:
+            #one of the boys is dead, get a new SCV assigned
+            self.scv_destroyed_during_build()
+
+    def update_distance(self):
+        self.scv_previous_dist = self.scv_current_dist
+        self.scv_current_dist = get_distance(self.scv.position,self.pos)
+    
+    def update_scv(self):
+        self.scv = self.bot.workers.find_by_tag(self.scv.tag)
+
+    def scv_destroyed_during_build(self):
+        #new scv needed if the tag no longer exists in the game, then tell new SCV to continue to build the building
+        #if SCV destroyed while en_route, should properly continue
+        self.buildstatus == "INCOMPLETE"
+        self.no_scv_building = False
+        self.scv_stalled_count = 0
+        self.scv = self.get_new_scv()
+        self.scv.repair(self.bot.structures.find_by_tag(self.tag))
+
     def get_new_scv(self):
         """
-        This function returns a list of all workers in range of the structure
+        This function returns a list of all workers sorted by closest and mining of the structure
         """
         #grab closest worker for repair, or build a turret nearby to guard it or bunker
         nearest_worker: Unit = self.pos.closest(self.bot.workers.collecting)
         return nearest_worker
     
-    def scv_destroyed_during_build(self):
-        pass
-
     def started_building(self):
         #we have started building this structure
-        #track the SCV
-        #assign the tag to self assign the variable
+        #track the SCV's progress
+        #Assign the Priority
         pass
+
+    def completed_building(self):
+        self.scv_required = False
 
     def building_took_damage(self):
         self.under_attack = True
-        #do something
+        #do something to save it?
 
     def building_destroyed(self):
-        #rebuild the building if it's proper priority
+        #rebuild the building
+        self.scv = self.get_new_scv()
+        self.scv_required = True
+        self.buildstatus = "RECEIVED"
         pass
 
     def set_priority(self):
         pass
     
     def assign_tag(self, unit: Unit):
-        self.tag = unit.tag
+        self.tag = unit.tag                         #assigns building tag for this building
+    
 
 
     # DELETE MemoryError

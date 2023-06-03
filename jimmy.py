@@ -44,7 +44,7 @@ class Jimmy(BotAI):
         self.structure_tracker = []                 # List of all structures built from the class
 
         self.game_step: int = 2                      # 2 usually, 6 vs human
-        self.debug = True
+        self.debug = False
 
     async def on_start(self):
         ### Build Order ###
@@ -86,8 +86,13 @@ class Jimmy(BotAI):
                 await cc_manager.manage_cc()
 
         ### Structure_Class ###
+
+        #Note: We should only call on structures that haven't been built yet
+        #so if we get a ton of buildings, we don't always have to keep pinging them
+        #Out of entire build order, only 2 structures don't have tags - is this an addon?
         for structure in self.structure_tracker:
-            await structure.manage_structure()
+            if structure.tag == None:
+                await structure.manage_structure()
 
         ### BuildOrderManager ###
         if self.step_index < len(self.build_order):
@@ -98,8 +103,6 @@ class Jimmy(BotAI):
         await self.micro_manager.controller()
         
         for depot in self.structures(UnitTypeId.SUPPLYDEPOT).ready:
-            #l.g.log("FATAL", "A user updated some information.")
-            #logger.jimmy("This is without the extra logger Test")
             depot(AbilityId.MORPH_SUPPLYDEPOT_LOWER)
 
         if self.debug:
@@ -135,7 +138,7 @@ class Jimmy(BotAI):
                         break
 
             elif order[3] == 'upgrade':
-                await research_upgrade(self, order[1])
+                await research_upgrade(self, order[2])
     
     #Following functions are called and happen asynchronously as an underlying interrupt function
     #from the BotAI - This will be something that happens outside of normal step function for the Bot
@@ -151,10 +154,12 @@ class Jimmy(BotAI):
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} started building")
         
+        #need to catch this and see what buildings don't have tags
         for str in self.structure_tracker:
+            #print(str.tag)
             if str.tag == None:
+                print(unit)
                 str.assign_tag(unit)
-        
         #send the update to the proper building that we started so we can update the variable
         #self.construction_manager.construction_started(unit)
         #remove_from_hopper(unit)
