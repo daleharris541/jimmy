@@ -14,7 +14,7 @@ from sc2.unit import Unit, RallyTarget
 from sc2.units import Units
 from sc2.game_data import AbilityData, Cost
 
-from managers.BuildOrderManager import fill_build_queue, build_queue, remove_from_hopper
+from managers.BuildOrderManager import fill_build_queue, build_queue
 from managers.ArmyManager import train_unit
 from managers.UpgradeManager import research_upgrade
 from managers.CC_Manager import CC_Manager
@@ -185,7 +185,7 @@ class Jimmy(BotAI):
         """
         if self.debug:
             l.g.log("UPGRADE", f"Self Bot AI just told me I finished researching {upgrade}")
-        remove_from_hopper(upgrade)
+        #remove_from_hopper(upgrade)
 
     async def on_unit_created(self, unit: Unit):
         """Override this in your bot class. This function is called when a unit is created.
@@ -193,7 +193,7 @@ class Jimmy(BotAI):
         :param unit:"""
         if self.debug:
             l.g.log("ARMY", f"Self Bot AI just told me I finished creating a {unit}")
-        remove_from_hopper(unit)
+        #remove_from_hopper(unit)
 
     async def on_enemy_unit_entered_vision(self, unit: Unit):
         """
