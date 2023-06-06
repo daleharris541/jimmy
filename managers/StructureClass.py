@@ -32,13 +32,15 @@ class Structure:
         self.scv_previous_dist = get_distance(self.scv.position,self.pos)
         self.scv_current_dist = get_distance(self.scv.position,self.pos)
         self.scv_stalled_count = 0
+        self.rallypoint = self.bot.main_base_ramp.bottom_center
+        self.rallypoint_set = False
         self.building_name = building_name
         self.tag = None                             #building tag
         self.priority = None
         self.buildstatus = "RECEIVED"               #Received, started, incomplete, completed, damaged, destroyed
         self.no_scv_building = False
         self.damaged = False
-        self.debug = False
+        self.debug = True
 
     async def manage_structure(self):
         """The main function of the Structure class"""
@@ -46,7 +48,8 @@ class Structure:
             self.pre_build_phase()
         else:
             if self.buildstatus == "COMPLETED":
-                self.completed_building()
+                self.scv_required = False
+                self.completed_building(self, self.rallypoint)
             elif self.buildstatus == "DAMAGED":
                 self.building_took_damage()
             elif self.buildstatus == "DESTROYED":
@@ -65,11 +68,8 @@ class Structure:
                 #if self.building_name not in self.scv.orders():
                     #build structure, doesn't exist right now
                 self.scv.build(UnitTypeId[self.building_name],self.pos,can_afford_check=True)
-                if self.debug: print(self.scv.orders,self.pos)
                 if self.scv_previous_dist == self.scv_current_dist:
                     self.scv_stalled_count += 1
-                    if self.debug: print(get_distance(self.scv.position,self.pos))
-                    if self.debug: print(self.scv_stalled_count)
                     if self.scv_stalled_count >= 10:
                         #our SCV is stuck somehow, get a new SCV
                         self.scv.stop()
@@ -83,7 +83,6 @@ class Structure:
             elif self.buildstatus == "INCOMPLETE":
                 self.no_scv_building = True
                 self.scv = self.get_new_scv()
-                pass
         else:
             #one of the boys is dead, get a new SCV assigned
             self.scv_destroyed_during_build()
@@ -118,8 +117,18 @@ class Structure:
         #Assign the Priority
         pass
 
-    def completed_building(self):
+    def completed_building(self, rallypoint: Point2):
+        if self.debug:
+            l.g.log("BUILD",f"We are getting here with {self.building_name}")
         self.scv_required = False
+        self.buildstatus = "COMPLETED"
+        #if building produces units, then rally to bottom of ramp for now
+        structure = self.bot.structures.find_by_tag(self.tag)
+        if self.rallypoint_set == False:
+            if self.debug:l.g.log("BUILD",f"Setting rally point for {self.building_name}")
+            structure(AbilityId.RALLY_BUILDING,self.rallypoint)
+            self.rallypoint_set = True
+
 
     def building_took_damage(self):
         self.under_attack = True

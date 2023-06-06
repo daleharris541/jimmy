@@ -174,8 +174,11 @@ class Jimmy(BotAI):
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} completed building")
         # Maybe use RallyTarget(ramp bottom or expansion offset towards enemy,tag)
-        self.construction_manager.construction_complete(unit)
-        self.micro_manager.on_building_construction_complete(unit)
+        for str in self.structure_tracker:
+            if str.tag == unit.tag:
+                str.completed_building(None)
+        #self.construction_manager.construction_complete(unit)
+        #self.micro_manager.on_building_construction_complete(unit)
 
     async def on_upgrade_complete(self, upgrade: UpgradeId):
         """
