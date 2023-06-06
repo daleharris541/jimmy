@@ -31,7 +31,6 @@ import tools.logger_levels as l
 
 class Jimmy(BotAI):
     
-    #following code from bot.py from smoothbrain bot as example
     def __init__(self):
         self.build_order = get_build_order(self,'16marinedrop-example')
         self.queue_size = 5
@@ -76,7 +75,6 @@ class Jimmy(BotAI):
         cc_list = self.townhalls.ready
         for cc in cc_list:
             if not any(cc_manager.townhall.tag == cc.tag for cc_manager in self.cc_managers):
-                #cc_manager = 
                 self.cc_managers.append(CC_Manager(self, cc))
 
         for cc_manager in self.cc_managers:
@@ -91,9 +89,12 @@ class Jimmy(BotAI):
         #so if we get a ton of buildings, we don't always have to keep pinging them
         #Out of entire build order, only 2 structures don't have tags - is this an addon?
         for structure in self.structure_tracker:
-            if structure.tag == None:
-                await structure.manage_structure()
-
+            await structure.manage_structure()
+        for incomplete_structure in self.structures_without_construction_SCVs:
+            for structure in self.structure_tracker:
+                if incomplete_structure.tag == structure.tag:
+                    structure.scv_destroyed_during_build()
+        
         ### BuildOrderManager ###
         if self.step_index < len(self.build_order):
             self.step_index = fill_build_queue(self.build_order, self.step_index, self.queue_size)
@@ -154,15 +155,12 @@ class Jimmy(BotAI):
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} started building")
         
-        #need to catch this and see what buildings don't have tags
-        for str in self.structure_tracker:
-            #print(str.tag)
-            if str.tag == None:
+        #once construction on a building has started, then assign the tag to the structure class
+        for structure in self.structure_tracker:
+            if structure.tag == None:
                 print(unit)
-                str.assign_tag(unit)
-        #send the update to the proper building that we started so we can update the variable
-        #self.construction_manager.construction_started(unit)
-        #remove_from_hopper(unit)
+                structure.assign_tag(unit)
+                structure.started_building(unit)
 
     async def on_building_construction_complete(self, unit: Unit):
         """
@@ -170,15 +168,11 @@ class Jimmy(BotAI):
         
         :param is unit/building:
         """
-        tag = unit.tag
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} completed building")
-        # Maybe use RallyTarget(ramp bottom or expansion offset towards enemy,tag)
         for str in self.structure_tracker:
             if str.tag == unit.tag:
                 str.completed_building(None)
-        #self.construction_manager.construction_complete(unit)
-        #self.micro_manager.on_building_construction_complete(unit)
 
     async def on_upgrade_complete(self, upgrade: UpgradeId):
         """
@@ -188,19 +182,17 @@ class Jimmy(BotAI):
         """
         if self.debug:
             l.g.log("UPGRADE", f"Self Bot AI just told me I finished researching {upgrade}")
-        #remove_from_hopper(upgrade)
 
     async def on_unit_created(self, unit: Unit):
         """Override this in your bot class. This function is called when a unit is created.
 
         :param unit:"""
         if self.debug:
-            l.g.log("ARMY", f"Self Bot AI just told me I finished creating a {unit}")
-        #remove_from_hopper(unit)
+            l.g.log("ARMY", f"Bot AI just told me I finished creating a {unit}")
 
     async def on_enemy_unit_entered_vision(self, unit: Unit):
         """
-        This function will always be called whenever a building completes.
+        This function will always be called whenever an enemy comes into vision
 
         :param unit:
         """

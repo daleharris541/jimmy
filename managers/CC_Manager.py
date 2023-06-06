@@ -7,6 +7,9 @@ from sc2.units import Units
 
 import tools.logger_levels as l
 
+cc_positions = []
+cc_list = []
+
 class CC_Manager:
 
     def __init__(self, bot: BotAI, townhall: Unit):
@@ -15,12 +18,18 @@ class CC_Manager:
         self.sphere_of_influence = 10 
         self.max_worker = 16
         self.debug = False
+        #Added Variables
+        self.cc = self.townhall #redundant but used in manage_cc class
+        self.tag = self.cc.tag
+        self.mineral_workers = self.get_close_workers()
+        cc_positions.append(self.townhall.position)
+        cc_list.append(self)
+        l.g.log("CC", f"Creating a new CC Manager Class {self}")
 
     async def manage_cc(self):
         """The main function of the CC_Manager that manages the Command Center."""
         ### UPDATE VARIABLES ###
-        self.cc = self.bot.structures.find_by_tag(self.townhall.tag)
-        #print(self.cc.position)
+        self.cc = self.bot.structures.find_by_tag(self.townhall.tag) #why does this need to run each time when a CC is created?
         if self.cc.position in self.bot.expansion_locations_list:
             self.workers = self.get_close_workers()
             self.available_minerals = self.get_mineral_fields()
@@ -55,6 +64,9 @@ class CC_Manager:
             return True
         else:
             return False
+    
+    def get_random_mineral_worker(self):
+        return self.mineral_workers.random
 
 ### Functions for Minerals   
     def get_mineral_fields(self):
@@ -65,7 +77,7 @@ class CC_Manager:
                 controlled_minerals.append(mineral_field)
         return controlled_minerals
 
-### Functions for Vespenegas  
+### Functions for Vespene gas  
     def get_vespene_geysers(self):
         """This function returns the unoccupied vespene geysers in range of the Command Center."""
         close_vespene_geysers = Units([], self)
@@ -90,9 +102,10 @@ class CC_Manager:
         """This function builds Refinerys in range of the Command Center."""
         if len(self.available_vespene) > 0:
             for vespene_geyser in self.available_vespene:
-                worker: Unit = self.bot.select_build_worker(vespene_geyser)
+                worker: Unit = self.mineral_workers.random
                 if worker:
                     worker.build_gas(vespene_geyser)
+                    self.mineral_workers.remove(worker)
                 return True
         else:
             return False
@@ -112,12 +125,13 @@ class CC_Manager:
             surplus_workers = assigned_workers - 3
             if assigned_workers < 3 and len(self.workers) > 10:
                 worker = self.workers.random
+                self.mineral_workers.remove(worker)
                 worker.gather(refinery)
             elif surplus_workers != 0:
                 for worker in self.workers: #list should only contain workers who are gathering minerals or returning with minerals
                     if worker.order_target == refinery.tag:
                         worker.gather(self.available_minerals.random)   
-
+    
 ### Upgrade ComandCenter
     def upgrade_orbital_command(self):
         """This function upgrades the Command Center to an Orbital Command."""
@@ -170,3 +184,7 @@ class CC_Manager:
                 available_positions.append(pos)
   
         return available_positions
+    
+### Return nearest CC to unit/building/manager
+    def return_nearest_cc_position(self, pos):
+        return closest_point(pos, cc_positions)

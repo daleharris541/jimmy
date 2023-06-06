@@ -4,11 +4,14 @@ from typing import Set
 
 
 def label_unit(self: BotAI, unit, text):
-    # worker = self.workers.by_tag(self.shimmy_the_wonder_SCV)
     green = Point3((0, 255, 0))
     self.client.debug_text_3d(text=text, pos=unit, color=green, size=14)
-    # if self.build_order_progress < .05 and self.minerals >30:
-    #     unit.move(self.supply_depot_placement_list[0])
+
+def draw_line_to_target(self: BotAI, unit, target_position):
+    green = Point3((0, 255, 0))
+    h2 = self.get_terrain_z_height(target_position) + 1
+    target_pos = Point3((target_position.x, target_position.y, h2))
+    self.client.debug_line_out(unit, target_pos, green)
 
 
 # def on_enemy_unit_entered_vision(self, unit: Unit):

@@ -16,29 +16,13 @@ class ConstructionManager:
         self.depot_positions = depot_positions
         self.building_positions = building_positions
         self.building_list = []
-        self.building_command_received = []
-        self.building_list_started = []
-        self.building_list_completed = []
-        self.failed_to_build = []
         self.debug = True
 
     async def supervisor(self, order, cc_managers: list):
         ### UPDATE VARIABLES ###
         self.building_list.append(order)
-        self.building_command_received.append(UnitTypeId[order[0]])
         ### BEHAVIOR ###
-
-        #if len(self.building_command_received) - len(self.building_list_started) > 0:
-        #    l.g.critical(f"{len(self.building_command_received) - len(self.building_list_started)} buildings yet to be built")
-        if self.debug:
-            l.g.log("CONSTRUCTION", f"Received: {self.building_command_received}")
-            l.g.log("CONSTRUCTION", f"Started:  {self.building_list_started}")
-            l.g.log("CONSTRUCTION", f"Completed:{self.building_list_completed}")
         
-        
-        if len(self.failed_to_build) > 0:
-            order = self.failed_to_build[0]
-            l.g.log("CONSTRUCTION",f"Retrying to build {order[0]}")
         if order[3] == "addon":
             if (await self.build_addon(order[0], order[1])):
                 return order
@@ -106,19 +90,3 @@ class ConstructionManager:
         
         #as we expand, move army nearby to cover expansion
         await self.bot.build(UnitTypeId.COMMANDCENTER, pos)
-
-
-    def construction_started(self, unit: Unit):
-        name = unit.name.upper()
-        for command in self.building_command_received:
-            command = str(command)
-            if command.find(name) > -1:
-                self.building_command_received.remove(UnitTypeId[name])
-                self.building_list_started.append(UnitTypeId[name])
-                l.g.log("CONSTRUCTION", f"Removing {name} from the list")
-
-    def construction_complete(self, unit: Unit):
-        name = unit.name.upper()
-        if name in self.building_list_started:
-            self.building_list_started.remove(UnitTypeId[name])
-            self.building_list_completed.append(UnitTypeId[name])
