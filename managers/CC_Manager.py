@@ -24,7 +24,6 @@ class CC_Manager:
         self.mineral_workers = self.get_close_workers()
         cc_positions.append(self.townhall.position)
         cc_list.append(self)
-        l.g.log("CC", f"Creating a new CC Manager Class {self}")
 
     async def manage_cc(self):
         """The main function of the CC_Manager that manages the Command Center."""
@@ -125,12 +124,15 @@ class CC_Manager:
             surplus_workers = assigned_workers - 3
             if assigned_workers < 3 and len(self.workers) > 10:
                 worker = self.workers.random
-                self.mineral_workers.remove(worker)
+                if worker in self.mineral_workers:
+                    self.mineral_workers.remove(worker)
                 worker.gather(refinery)
             elif surplus_workers != 0:
                 for worker in self.workers: #list should only contain workers who are gathering minerals or returning with minerals
                     if worker.order_target == refinery.tag:
-                        worker.gather(self.available_minerals.random)   
+                        worker.gather(self.available_minerals.random)
+                        if worker in self.mineral_workers:
+                            self.mineral_workers.remove(worker)   
     
 ### Upgrade ComandCenter
     def upgrade_orbital_command(self):

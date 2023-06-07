@@ -43,7 +43,7 @@ class Jimmy(BotAI):
         self.structure_tracker = []                 # List of all structures built from the class
 
         self.game_step: int = 2                      # 2 usually, 6 vs human
-        self.debug = False
+        self.debug = True                           #set to True to see debug logs
 
     async def on_start(self):
         ### Build Order ###
@@ -172,7 +172,16 @@ class Jimmy(BotAI):
             l.g.log("CONSTRUCTION",f"{unit.name} completed building")
         for str in self.structure_tracker:
             if str.tag == unit.tag:
-                str.completed_building(None)
+                str.completed_building(unit)
+    
+    async def on_unit_took_damage(self, unit: Unit, amount_damage_taken: float):
+        unit_name = unit.name.upper()
+        if UnitTypeId[unit_name] in self.structure_tracker:
+            if self.debug:l.g.log("MICROMANAGER",f"Unit {unit.name} took damage of {amount_damage_taken} and is of type Structure")
+            for structure in self.structure_tracker:
+                if structure.tag == unit.tag:
+                    structure.building_took_damage()
+
 
     async def on_upgrade_complete(self, upgrade: UpgradeId):
         """
