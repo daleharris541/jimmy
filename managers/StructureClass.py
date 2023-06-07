@@ -5,6 +5,7 @@ from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
 from sc2.unit import Unit
+from sc2.units import Units
 from sc2.position import Point2, Point3
 from typing import Set
 from tools.math_ops import get_distance
@@ -24,7 +25,8 @@ import tools.logger_levels as l
 
 #Structure(self, unit_name, pos, worker )
 all_scvs_assigned = []          #we want to add our assigned SCVs to build to this list and make sure they are removed once they are no longer building
-all_structures = []             #all structures in this list will be only before they are completely built
+all_structures = []             #all structures in this list will exist only until they are completely built
+structure_list = []
 
 class Structure:
 
@@ -75,6 +77,7 @@ class Structure:
                 draw_line_to_target(self.bot, self.scv, self.pos)
             await self.pre_build_phase()
             
+
 ### Functions for SCVs to build the structure with multiple failures/unforeseen circumstances
     async def pre_build_phase(self):
         #l.g.log("BUILD",f"Prebuild Structure: {self.building_name, self.pos}")
@@ -84,13 +87,16 @@ class Structure:
             self.update_distance()
             ### BEHAVIOR ###
             if self.buildstatus == "RECEIVED" and self.scv_not_building:
-                if self.scv_building_other and self.scv_queued != True:
-                    self.scv.build(UnitTypeId[self.building_name],self.pos,queue=True,can_afford_check=True)
-                    self.scv_queued = True
-                elif self.scv_queued != True:
+
+                if self.scv_building_other == False and self.scv_queued == False:
                     self.scv.build(UnitTypeId[self.building_name],self.pos,queue=False,can_afford_check=True)
+                elif self.scv_building_other and self.scv_queued == False:
+                    self.scv.build(UnitTypeId[self.building_name],self.pos,queue=True,can_afford_check=True)
+                
+                self.scv_queued = True
                 self.scv_not_building = False
                 await self.stall_check()
+
             elif self.buildstatus == "INCOMPLETE":
                 self.scv_not_building = True
                 self.scv = self.get_new_scv()
@@ -133,7 +139,7 @@ class Structure:
         # # closest_scv = self.pos.closest(self.bot.workers)
         # # #get all buildings being built and progress towards finishing, see if we can match up that building tag with structure and SCV tag
         # # for structure in all_structures:            #get all in_progress/being built structures
-        # #     if closest_scv.tag == structure.tag:    #if the SCV we grabbed is the closest
+        # #     if closest_scv.tag == structure.scv.tag:    #if the SCV we grabbed is the closest
         # #         random_worker = closest_scv
         # if random_worker is None:
         #     all_scvs_mining = []
@@ -144,8 +150,18 @@ class Structure:
         #         random_worker: Unit = self.pos.closest(all_scvs_mining)
         # all_scvs_assigned.append(random_worker)
         nearest_worker: Unit = self.pos.closest(self.bot.workers)
-        all_scvs_assigned.append(nearest_worker)
-        return nearest_worker
+
+        if len(all_structures) > 0:
+            for objects in all_structures:
+                if objects[1].tag == nearest_worker.tag:
+                    if objects.build_progress > 0.9:
+                        self.scv_building_other = True
+                        all_scvs_assigned.append(nearest_worker)
+                        closest_worker = nearest_worker
+        else:
+            closest_worker = nearest_worker
+        
+        return closest_worker
     
     ### These functions get kicked off when async bot functions hit Jimmy
     def started_building(self, unit):
@@ -153,7 +169,8 @@ class Structure:
         #track the SCV's progress
         #Assign the Priority
         l.g.log("BUILD",f"I've received confirmation that {self.building_name} has started")
-        all_structures.append(unit)
+        all_structures.append([unit, self.scv])
+        print(all_structures)
         self.unit = unit
         if get_distance(self.pos,self.bot.main_base_ramp.top_center) < 2:
             self.set_priority(0)
@@ -165,9 +182,9 @@ class Structure:
         If None is sent over, then it uses the default of main base ramp bottom
         """
         self.scv_required = False
+        all_structures.remove([unit, self.scv])
         self.scv = None
         self.buildstatus = "COMPLETED"
-        all_structures.remove(self.unit)
         self.set_rallypoint(self.rallypoint)
 
 
@@ -198,8 +215,6 @@ class Structure:
     def set_rallypoint(self, rallypoint: Point2):
         self.rallypoint = rallypoint
         self.unit(AbilityId.RALLY_BUILDING,self.rallypoint)
-    
-
 
     # DELETE MemoryError
     # def update_unit_list(units, type):

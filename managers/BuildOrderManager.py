@@ -9,7 +9,7 @@ import tools.logger_levels as l
 
 next_build_steps = []           #this is our hopper that carries 5 orders and attempts to build ahead
 completed_build_steps = []      #this is our original function meant to keep track of what's done
-debug = True
+debug = False
 
 def fill_build_queue(build_order: list, index, range):
     if len(next_build_steps) < range:

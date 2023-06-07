@@ -67,7 +67,7 @@ class Jimmy(BotAI):
         if self.debug: l.g.log("CC", f"SCV Quantities: {self.workers_required}")
 
         ### Construction Manager ###
-        #self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
+        self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
 
         ### Structure Class ###
         cc_list = self.townhalls.ready #should only be starting CC
@@ -91,7 +91,7 @@ class Jimmy(BotAI):
                 await cc_manager.manage_cc()
 
         ### Structure_Class ###
-        
+
         #Note: We should only call on structures that haven't been built yet
         #so if we get a ton of buildings, we don't always have to keep pinging them
         for structure in self.structure_tracker:
@@ -163,7 +163,7 @@ class Jimmy(BotAI):
         #once construction on a building has started, then assign the tag to the structure class
         for structure in self.structure_tracker:
             if structure.tag == None:
-                print(unit)
+                #print(unit)
                 structure.assign_tag(unit)
                 structure.started_building(unit)
 
