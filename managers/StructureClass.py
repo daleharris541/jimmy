@@ -28,7 +28,7 @@ all_structures = []             #all structures in this list will be only before
 
 class Structure:
 
-    def __init__(self, bot: BotAI, building_name, pos: Point2):
+    def __init__(self, bot: BotAI, building_name, pos: Point2,is_townhall=False,townhall=None):
         """
         This class is instantiated per building to enable tracking from Jimmy.py
         """
@@ -58,7 +58,14 @@ class Structure:
         self.rallypoint_set = False
         
         ### Misc Variables ###
-        self.debug = True
+        self.debug = False
+        if is_townhall:
+            self.buildstatus = "COMPLETED"
+            self.building_name = "COMMANDCENTER"
+            self.tag = townhall.tag
+            self.pos = townhall.position
+            self.unit = townhall
+            self.scv_required = False
 
     async def manage_structure(self):
         """The main function of the Structure class"""
@@ -165,6 +172,7 @@ class Structure:
 
 
     def building_took_damage(self):
+        if self.debug:l.g.log("BUILD",f"Structure {self.building_name} took damage!")
         self.scv_required = True
         self.under_attack = True
         self.scv = self.get_new_scv()

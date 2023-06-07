@@ -14,6 +14,7 @@ debug = True
 def fill_build_queue(build_order: list, index, range):
     if len(next_build_steps) < range:
         if index < len(build_order):
+            if debug: l.g.log("BUILD",f"Appending {build_order[index]}")
             next_build_steps.append(build_order[index])
             index += 1
     return index
@@ -29,6 +30,8 @@ def build_queue(self: BotAI):
         cost: Cost = step[-1] 
         if (requirements_check(self, step)):
             if((available.minerals - step_cost.minerals) >= cost.minerals and (available.vespene - step_cost.vespene) >= cost.vespene):
+                if debug:
+                    l.g.log("BUILD",f"Removing {step} from list")
                 next_build_steps.remove(step)
                 return step
             else:
@@ -37,7 +40,9 @@ def build_queue(self: BotAI):
 def requirements_check(self: BotAI, step):
     can_build = False
     if step[3] == 'structure' or step[3] == 'addon' or step[3] == 'commandcenter':
+        if debug:l.g.log("BUILD",f"Testing tech requirements for {UnitTypeId[step[0]]}")
         if self.tech_requirement_progress(UnitTypeId[step[0]]) == 1:
+            if debug:l.g.log("BUILD",f"Tech Req met for {UnitTypeId[step[0]]}")
             can_build = True
     elif step[3] == 'worker':
         if self.supply_left > 0:

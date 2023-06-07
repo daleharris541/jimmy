@@ -43,7 +43,7 @@ class Jimmy(BotAI):
         self.structure_tracker = []                 # List of all structures built from the class
 
         self.game_step: int = 2                      # 2 usually, 6 vs human
-        self.debug = True                           #set to True to see debug logs
+        self.debug = False                           #set to True to see debug logs
 
     async def on_start(self):
         ### Build Order ###
@@ -65,8 +65,15 @@ class Jimmy(BotAI):
         ### Worker Count ###
         self.workers_required = update_unit_list(self.build_order, 'worker')
         if self.debug: l.g.log("CC", f"SCV Quantities: {self.workers_required}")
+
         ### Construction Manager ###
-        self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
+        #self.construction_manager = ConstructionManager(self, self.build_order, self.supply_depot_placement_list, self.tech_buildings_placement_list)
+
+        ### Structure Class ###
+        cc_list = self.townhalls.ready #should only be starting CC
+        for cc in cc_list:
+            Structure(self,"COMMANDCENTER", cc.position,True,cc)
+
         ### MicroManager ###
         self.micro_manager = MicroManager(self)
 
@@ -84,10 +91,9 @@ class Jimmy(BotAI):
                 await cc_manager.manage_cc()
 
         ### Structure_Class ###
-
+        
         #Note: We should only call on structures that haven't been built yet
         #so if we get a ton of buildings, we don't always have to keep pinging them
-        #Out of entire build order, only 2 structures don't have tags - is this an addon?
         for structure in self.structure_tracker:
             await structure.manage_structure()
         for incomplete_structure in self.structures_without_construction_SCVs:
@@ -146,9 +152,8 @@ class Jimmy(BotAI):
     async def on_building_construction_started(self, unit: Unit):
         """
         This function will always be called whenever a building has started to be built
-        It sends the building type to the construction manager for the list
-        if the building matches a building that was in the "waiting to validate" list
-        removes it from the list
+        It finds the appropriate matching structure class object and sends the update
+        Based on testing, this may be called even when it doesn't happen - something to validate
         
         :param is unit/building:
         """
@@ -175,17 +180,20 @@ class Jimmy(BotAI):
                 str.completed_building(unit)
     
     async def on_unit_took_damage(self, unit: Unit, amount_damage_taken: float):
-        unit_name = unit.name.upper()
-        if UnitTypeId[unit_name] in self.structure_tracker:
-            if self.debug:l.g.log("MICROMANAGER",f"Unit {unit.name} took damage of {amount_damage_taken} and is of type Structure")
+        if self.debug:l.g.log("MICROMANAGER",f"Unit Took Damage: {unit}")
+        if self.structures.find_by_tag(unit.tag) is not None:
+            l.g.log("MICROMANAGER",f"Unit {unit.name} took damage of {amount_damage_taken} and is of type Structure")
             for structure in self.structure_tracker:
                 if structure.tag == unit.tag:
                     structure.building_took_damage()
+        else:
+            #Unit took damage, can be worker or Army
+            l.g.log("MICROMANAGER",f"Unit {unit.name} took damage of {amount_damage_taken} and is of type Unit")
 
 
     async def on_upgrade_complete(self, upgrade: UpgradeId):
         """
-        Override this in your bot class. This function is called with the upgrade id of an upgrade that was not finished last step and is now.
+        This function is called with the upgrade id of an upgrade that was not finished last step and is now.
 
         :param upgrade:
         """
@@ -193,9 +201,11 @@ class Jimmy(BotAI):
             l.g.log("UPGRADE", f"Self Bot AI just told me I finished researching {upgrade}")
 
     async def on_unit_created(self, unit: Unit):
-        """Override this in your bot class. This function is called when a unit is created.
+        """
+        This function is called when a unit is created.
 
-        :param unit:"""
+        :param unit:
+        """
         if self.debug:
             l.g.log("ARMY", f"Bot AI just told me I finished creating a {unit}")
 

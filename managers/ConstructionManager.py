@@ -16,7 +16,7 @@ class ConstructionManager:
         self.depot_positions = depot_positions
         self.building_positions = building_positions
         self.building_list = []
-        self.debug = True
+        self.debug = False
 
     async def supervisor(self, order, cc_managers: list):
         ### UPDATE VARIABLES ###
