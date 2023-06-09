@@ -49,18 +49,18 @@ class Structure:
         self.scv = self.get_new_scv()                       #upon init, grabbed closest SCV mining
         self.scv_required = True                            #a building requires an SCV before and during construction                    
         self.scv_building_other = False                     #set to True when an SCV is building another structure           
-        self.scv_previous_dist = get_distance(self.scv.position,self.pos)
-        self.scv_current_dist = get_distance(self.scv.position,self.pos)
+        self.scv_previous_dist = None
+        self.scv_current_dist = None
         self.scv_stalled_count = 0                          #if SCV is stuck or sits still, will eventually pick new SCV
-        self.scv_not_building = True                        #set to False only when we have issued a build command
-        self.scv_queued = False                             #set to True when build command is queued
+        self.scv_queued_to_build = False                    #set to True when build command is queued
+        self.scv_is_not_repairing = True                    #default, changes when SCV assigned to repair
 
         ### Unit Creation Variables
         self.rallypoint = self.bot.main_base_ramp.bottom_center
         self.rallypoint_set = False
         
         ### Misc Variables ###
-        self.debug = False
+        self.debug = True
         if is_townhall:
             self.buildstatus = "COMPLETED"
             self.building_name = "COMMANDCENTER"
@@ -86,19 +86,19 @@ class Structure:
             self.update_scv()
             self.update_distance()
             ### BEHAVIOR ###
-            if self.buildstatus == "RECEIVED" and self.scv_not_building:
+            if self.buildstatus == "RECEIVED":
 
-                if self.scv_building_other == False and self.scv_queued == False:
-                    self.scv.build(UnitTypeId[self.building_name],self.pos,queue=False,can_afford_check=True)
-                elif self.scv_building_other and self.scv_queued == False:
-                    self.scv.build(UnitTypeId[self.building_name],self.pos,queue=True,can_afford_check=True)
+                if self.scv_building_other == False and self.scv_queued_to_build == False:
+                    self.scv.build(UnitTypeId[self.building_name],self.pos,queue=False)
+                elif self.scv_building_other and self.scv_queued_to_build == False:
+                    self.scv.build(UnitTypeId[self.building_name],self.pos,queue=True)
                 
-                self.scv_queued = True
-                self.scv_not_building = False
+                self.scv_queued_to_build = True
                 await self.stall_check()
 
             elif self.buildstatus == "INCOMPLETE":
-                self.scv_not_building = True
+                self.incomplete_no_scv = True
+                self.buildstatus == "RECEIVED"
                 self.scv = self.get_new_scv()
         else:
             #one of the boys is dead, get a new SCV assigned
@@ -106,10 +106,13 @@ class Structure:
 
     def update_distance(self):
         self.scv_previous_dist = self.scv_current_dist
-        self.scv_current_dist = get_distance(self.scv.position,self.pos)
+        if self.bot.workers.find_by_tag(self.scv.tag) is not None:
+            self.scv_current_dist = get_distance(self.scv.position,self.pos)
     
     def update_scv(self):
-        self.scv = self.bot.workers.find_by_tag(self.scv.tag)
+        alive_worker = self.bot.workers.find_by_tag(self.scv.tag)
+        if alive_worker is None:
+            self.scv = self.get_new_scv()
     
     async def stall_check(self):
         if self.scv_previous_dist == self.scv_current_dist:
@@ -126,12 +129,13 @@ class Structure:
         self.buildstatus == "INCOMPLETE"
         self.scv_stalled_count = 0              #resets stalled count
         self.scv_not_building = True
+        self.scv_queued = False
         self.scv = self.get_new_scv()
 
     def get_new_scv(self, priority = None):
         """
         This function returns the closest SCV nearest to our target structure position
-        Additionally queues up the SCV building something next to it for now
+        Additionally queues up the SCV if it's already building and past 90% completion
         """
         #grab closest worker for repair, or build a turret nearby to guard it or bunker
         #also consider if it's one of the first 4 buildings to simply queue it up if it's close to finishing
@@ -149,19 +153,21 @@ class Structure:
         #     while random_worker in all_scvs_assigned:           #if the scv is already assigned to build something else, pick a new one
         #         random_worker: Unit = self.pos.closest(all_scvs_mining)
         # all_scvs_assigned.append(random_worker)
-        nearest_worker: Unit = self.pos.closest(self.bot.workers)
-
-        if len(all_structures) > 0:
-            for objects in all_structures:
-                if objects[1].tag == nearest_worker.tag:
-                    if objects.build_progress > 0.9:
-                        self.scv_building_other = True
-                        all_scvs_assigned.append(nearest_worker)
-                        closest_worker = nearest_worker
+       
+        selected_worker = None
+        potential_list = []
+        potential_list.append(self.pos.closest(self.bot.workers)) #selects a single SCV
+        for objects in all_structures:
+            if self.bot.structures.find_by_tag(objects[0].tag).build_progress >= .9:
+                potential_list.append(objects[1])
+        for worker in self.bot.workers.collecting:
+            potential_list.append(worker)
+        selected_worker = self.pos.closest(potential_list)
+        if selected_worker in all_scvs_assigned:
+            self.scv_building_other = True
         else:
-            closest_worker = nearest_worker
-        
-        return closest_worker
+            all_scvs_assigned.append(selected_worker)
+        return selected_worker
     
     ### These functions get kicked off when async bot functions hit Jimmy
     def started_building(self, unit):
@@ -181,8 +187,9 @@ class Structure:
         This function takes one parameter of a Point2 on rally point target
         If None is sent over, then it uses the default of main base ramp bottom
         """
-        self.scv_required = False
         all_structures.remove([unit, self.scv])
+        all_scvs_assigned.remove(self.scv)
+        self.scv_required = False
         self.scv = None
         self.buildstatus = "COMPLETED"
         self.set_rallypoint(self.rallypoint)
@@ -192,8 +199,13 @@ class Structure:
         if self.debug:l.g.log("BUILD",f"Structure {self.building_name} took damage!")
         self.scv_required = True
         self.under_attack = True
-        self.scv = self.get_new_scv()
-        self.scv.repair(self.unit)
+        self.health_percentage = self.unit.health
+        
+        if self.scv_is_not_repairing:
+            self.scv = self.get_new_scv()
+            self.scv.repair(self.unit)
+            if self.bot.structures.find_by_tag(self.tag).health:
+                self.scv_is_not_repairing = False
 
     def building_destroyed(self, priority = None):
         #rebuild the building
@@ -207,7 +219,6 @@ class Structure:
             return True
         else:
             return False
-        pass
     
     def assign_tag(self, unit: Unit):
         self.tag = unit.tag                         #assigns building tag for this building
