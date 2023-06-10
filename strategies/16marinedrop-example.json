@@ -64,6 +64,14 @@
         "frame": 988
     },
     {
+        "name": "SupplyDepot",
+        "id": 19,
+        "type": "structure",
+        "supply": 20,
+        "time": "01:46",
+        "frame": 2384
+    },
+    {
         "name": "SCV",
         "id": 45,
         "type": "worker",
@@ -110,14 +118,6 @@
         "supply": 20,
         "time": "01:39",
         "frame": 2229
-    },
-    {
-        "name": "SupplyDepot",
-        "id": 19,
-        "type": "structure",
-        "supply": 20,
-        "time": "01:46",
-        "frame": 2384
     },
     {
         "name": "call_down_mule",

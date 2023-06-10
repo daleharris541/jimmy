@@ -73,7 +73,7 @@ class ConstructionManager:
                 else:
                     return False
                 
-    async def build_expansion(self):
+    def build_expansion(self):
         """This function looks for the nearest expansion location."""
         used_positions = []
         all_positions = self.bot.expansion_locations_list
@@ -87,6 +87,6 @@ class ConstructionManager:
                 available_positions.append(pos)
 
         pos = closest_point(self.bot.start_location, available_positions)
-        
+        print(f"Closest point is {pos}")
         #as we expand, move army nearby to cover expansion
-        await self.bot.build(UnitTypeId.COMMANDCENTER, pos)
+        return Point2(pos)

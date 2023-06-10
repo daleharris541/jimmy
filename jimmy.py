@@ -37,7 +37,7 @@ class Jimmy(BotAI):
         self.step_index = 0
         self.upgrades = []                          # all of the upgrades from build order
         self.unit_types_qty = []                    # all of the units and counts we will build on build order load
-        self.cc_managers = []                       # Instantiate all CC Class Managers in here
+        self.cc_managers = []      
         self.worker_pool = 16                       # Total workers per CC
         self.workers_required = []                  # Total Workers from Build Order
         self.structure_tracker = []                 # List of all structures built from the class
@@ -122,18 +122,19 @@ class Jimmy(BotAI):
     
     async def order_distributor(self, order):
         if order != None:
-
-            if order[3] == 'addon' or order[3] == 'commandcenter':
-                    await self.construction_manager.supervisor(order, self.cc_managers)
-
-            elif order[3] == 'structure':
+            if order[3] == 'structure':
                 if order[0] == 'SUPPLYDEPOT':
-                    print(f"Attempting to build supply depot at {self.supply_depot_placement_list[0]}")
                     self.structure_tracker.append(Structure(self,order[0], self.supply_depot_placement_list[0]))
                     self.supply_depot_placement_list.pop(0)
+                elif order[0] == 'COMMANDCENTER':
+                    pos = self.construction_manager.build_expansion()
+                    self.structure_tracker.append(Structure(self,order[0],pos))
                 else:
                     self.structure_tracker.append(Structure(self,order[0], self.tech_buildings_placement_list[0]))
                     self.tech_buildings_placement_list.pop(0)
+            
+            elif order[3] == 'addon' or order[3] == 'commandcenter':
+                    await self.construction_manager.supervisor(order, self.cc_managers)
 
             elif order[3] == 'unit':
                 await train_unit(self, order[0])
@@ -153,18 +154,19 @@ class Jimmy(BotAI):
         """
         This function will always be called whenever a building has started to be built
         It finds the appropriate matching structure class object and sends the update
-        Based on testing, this may be called even when it doesn't happen - something to validate
+        This function does not actually confirm a building has been started
         
         :param is unit/building:
         """
         if self.debug:
-            l.g.log("CONSTRUCTION",f"{unit.name} started building")
+            l.g.log("CONSTRUCTION",f"{unit} started building at {unit.position}!")
         
-        #once construction on a building has started, then assign the tag to the structure class
+        #order[0] = Name
+        #
+        #once construction on a building has started, then send it to the structure class to update
         for structure in self.structure_tracker:
-            if structure.tag == None:
-                #print(unit)
-                structure.assign_tag(unit)
+            if structure.pos == unit.position:
+                l.g.log("CONSTRUCTION",f"{unit.position} position in structure tracker:{structure.pos}!")
                 structure.started_building(unit)
 
     async def on_building_construction_complete(self, unit: Unit):
@@ -175,19 +177,18 @@ class Jimmy(BotAI):
         """
         if self.debug:
             l.g.log("CONSTRUCTION",f"{unit.name} completed building")
-        for str in self.structure_tracker:
-            if str.tag == unit.tag:
-                str.completed_building(unit)
+        for structure in self.structure_tracker:
+            if structure.pos == unit.position:
+                structure.completed_building(unit)
     
     async def on_unit_took_damage(self, unit: Unit, amount_damage_taken: float):
         if self.debug:l.g.log("MICROMANAGER",f"Unit Took Damage: {unit}")
         if self.structures.find_by_tag(unit.tag) is not None:
             l.g.log("MICROMANAGER",f"Unit {unit.name} took damage of {amount_damage_taken} and is of type Structure")
             for structure in self.structure_tracker:
-                if structure.tag == unit.tag:
+                if structure.pos == unit.position:
                     structure.building_took_damage()
-        else:
-            #Unit took damage, can be worker or Army
+        else:            #Unit took damage, can be worker or Army
             l.g.log("MICROMANAGER",f"Unit {unit.name} took damage of {amount_damage_taken} and is of type Unit")
 
 
@@ -221,7 +222,7 @@ class Jimmy(BotAI):
     #end Bot Class
 def build_order_cost(self: BotAI, build_order):
     for order in build_order:
-        if order[3] == 'unit' or order[3] == 'worker' or order[3] == 'structure' or order[0] == 'REFINERY':
+        if order[3] == 'unit' or order[3] == 'worker' or order[3] == 'structure' or order[0] == 'REFINERY' or order[0] == 'COMMANDCENTER':
             order.append(self.calculate_cost(UnitTypeId[order[0]]))
         elif order[3] == 'addon' or order[3] == 'commandcenter':
             order.append(self.calculate_cost(AbilityId[order[1]]))

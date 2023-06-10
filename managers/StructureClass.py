@@ -1,6 +1,6 @@
 from tools import closest_point
 from tools.draw import label_unit, draw_line_to_target
-from managers.CC_Manager import cc_positions, cc_list
+from managers.CC_Manager import vespene_workers
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.ability_id import AbilityId
@@ -25,7 +25,7 @@ import tools.logger_levels as l
 
 #Structure(self, unit_name, pos, worker )
 all_scvs_assigned = []          #we want to add our assigned SCVs to build to this list and make sure they are removed once they are no longer building
-all_structures = []             #all structures in this list will exist only until they are completely built
+all_incomplete_structures = []             #all structures in this list will exist only until they are completely built
 structure_list = []
 
 class Structure:
@@ -53,7 +53,7 @@ class Structure:
         self.scv_current_dist = None
         self.scv_stalled_count = 0                          #if SCV is stuck or sits still, will eventually pick new SCV
         self.scv_queued_to_build = False                    #set to True when build command is queued
-        self.scv_is_not_repairing = True                    #default, changes when SCV assigned to repair
+        self.scv_is_not_repairing = True                    #default, changes when SCV assigned to repair and turned off to prevent multiple SCVs being pulled off line to repair every time building takes dmg
 
         ### Unit Creation Variables
         self.rallypoint = self.bot.main_base_ramp.bottom_center
@@ -71,7 +71,7 @@ class Structure:
 
     async def manage_structure(self):
         """The main function of the Structure class"""
-        if self.scv_required:
+        if self.scv is not None:
             if self.debug:
                 label_unit(self.bot,self.scv, self.building_name)
                 draw_line_to_target(self.bot, self.scv, self.pos)
@@ -96,10 +96,15 @@ class Structure:
                 self.scv_queued_to_build = True
                 await self.stall_check()
 
+            elif self.buildstatus == "STARTED":
+                self.scv_required = False
+                self.scv_queued_to_build = False
+
             elif self.buildstatus == "INCOMPLETE":
                 self.incomplete_no_scv = True
-                self.buildstatus == "RECEIVED"
+                self.buildstatus = "RECEIVED"
                 self.scv = self.get_new_scv()
+ 
         else:
             #one of the boys is dead, get a new SCV assigned
             self.scv_destroyed_during_build()
@@ -113,7 +118,10 @@ class Structure:
         alive_worker = self.bot.workers.find_by_tag(self.scv.tag)
         if alive_worker is None:
             self.scv = self.get_new_scv()
+        else:
+            self.scv = self.bot.workers.find_by_tag(self.scv.tag)
     
+    #TODO #35 Stall check needs to be tweaked
     async def stall_check(self):
         if self.scv_previous_dist == self.scv_current_dist:
             self.scv_stalled_count += 1
@@ -153,33 +161,37 @@ class Structure:
         #     while random_worker in all_scvs_assigned:           #if the scv is already assigned to build something else, pick a new one
         #         random_worker: Unit = self.pos.closest(all_scvs_mining)
         # all_scvs_assigned.append(random_worker)
-       
         selected_worker = None
         potential_list = []
+        #all workers
         potential_list.append(self.pos.closest(self.bot.workers)) #selects a single SCV
-        for objects in all_structures:
-            if self.bot.structures.find_by_tag(objects[0].tag).build_progress >= .9:
-                potential_list.append(objects[1])
+        #workers 90% or above on building construction (all structures are only the ones being built)
+        for objects in all_incomplete_structures:
+            print(self.bot.structures.find_by_tag(objects[0].tag).build_progress)
+            if self.bot.structures.find_by_tag(objects[0].tag).build_progress < .9 and objects[1] in potential_list:
+                potential_list.remove(objects[1])
+        #workers mining and returning and vespene returning minus vespene workers
         for worker in self.bot.workers.collecting:
-            potential_list.append(worker)
+            if worker not in vespene_workers: #checks to make sure they aren't vespene workers
+                potential_list.append(worker)
         selected_worker = self.pos.closest(potential_list)
+        # if the selected worker is already building something, queue the command in pre_build_phase
         if selected_worker in all_scvs_assigned:
             self.scv_building_other = True
         else:
             all_scvs_assigned.append(selected_worker)
+        
+        #if everything breaks, uncomment below and it will bypass everything
+        #selected_worker = self.pos.closest(self.bot.workers)
         return selected_worker
     
     ### These functions get kicked off when async bot functions hit Jimmy
     def started_building(self, unit):
-        #we have started building this structure
+        #we have an SCV that has put his welder to construction
         #track the SCV's progress
-        #Assign the Priority
-        l.g.log("BUILD",f"I've received confirmation that {self.building_name} has started")
-        all_structures.append([unit, self.scv])
-        print(all_structures)
+        all_incomplete_structures.append([unit, self.scv])
         self.unit = unit
-        if get_distance(self.pos,self.bot.main_base_ramp.top_center) < 2:
-            self.set_priority(0)
+        self.tag = unit.tag
         self.buildstatus = "STARTED"
 
     def completed_building(self, unit: Unit):
@@ -187,19 +199,28 @@ class Structure:
         This function takes one parameter of a Point2 on rally point target
         If None is sent over, then it uses the default of main base ramp bottom
         """
-        all_structures.remove([unit, self.scv])
-        all_scvs_assigned.remove(self.scv)
+        if self.debug:l.g.log("BUILD",f"Removing {unit} from the all_incomplete_structures list")
+        all_incomplete_structures.remove([unit, self.scv])
+        if self.debug: l.g.log("BUILD",f"All SCVs currently building: {all_scvs_assigned}")
+        if self.scv in all_scvs_assigned:
+            if self.debug: l.g.log("BUILD",f"Removing SCV from list: {self.scv}")
+            all_scvs_assigned.remove(self.scv)
         self.scv_required = False
         self.scv = None
         self.buildstatus = "COMPLETED"
-        self.set_rallypoint(self.rallypoint)
-
+        name = self.building_name
+        if name in ["BARRACKS","FACTORY","STARPORT"]:
+            if self.debug:l.g.log("BUILD",f"Setting rallypoint for {unit.name}")
+            self.set_rallypoint(self.rallypoint)
 
     def building_took_damage(self):
         if self.debug:l.g.log("BUILD",f"Structure {self.building_name} took damage!")
         self.scv_required = True
         self.under_attack = True
         self.health_percentage = self.unit.health
+        if self.health_percentage > .95:
+            self.scv_required = False
+            self.under_attack = False
         
         if self.scv_is_not_repairing:
             self.scv = self.get_new_scv()
@@ -219,9 +240,6 @@ class Structure:
             return True
         else:
             return False
-    
-    def assign_tag(self, unit: Unit):
-        self.tag = unit.tag                         #assigns building tag for this building
 
     def set_rallypoint(self, rallypoint: Point2):
         self.rallypoint = rallypoint

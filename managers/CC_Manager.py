@@ -9,6 +9,7 @@ import tools.logger_levels as l
 
 cc_positions = []
 cc_list = []
+vespene_workers = [] #you can import this variable and read it from other classes from X import vespene_workers
 
 class CC_Manager:
 
@@ -18,10 +19,9 @@ class CC_Manager:
         self.sphere_of_influence = 10 
         self.max_worker = 16
         self.debug = False
-        #Added Variables
         self.cc = self.townhall #redundant but used in manage_cc class
+        #Added Variables
         self.tag = self.cc.tag
-        self.mineral_workers = self.get_close_workers()
         cc_positions.append(self.townhall.position)
         cc_list.append(self)
 
@@ -64,9 +64,6 @@ class CC_Manager:
         else:
             return False
     
-    def get_random_mineral_worker(self):
-        return self.mineral_workers.random
-
 ### Functions for Minerals   
     def get_mineral_fields(self):
         """This function returns the mineral fields in range of the Command Center."""
@@ -101,10 +98,9 @@ class CC_Manager:
         """This function builds Refinerys in range of the Command Center."""
         if len(self.available_vespene) > 0:
             for vespene_geyser in self.available_vespene:
-                worker: Unit = self.mineral_workers.random
-                if worker:
-                    worker.build_gas(vespene_geyser)
-                    self.mineral_workers.remove(worker)
+                worker: Unit = self.bot.select_build_worker(vespene_geyser)
+                worker.build_gas(vespene_geyser)
+                vespene_workers.append(worker)
                 return True
         else:
             return False
@@ -124,17 +120,14 @@ class CC_Manager:
             surplus_workers = assigned_workers - 3
             if assigned_workers < 3 and len(self.workers) > 10:
                 worker = self.workers.random
-                if worker in self.mineral_workers:
-                    self.mineral_workers.remove(worker)
                 worker.gather(refinery)
+                vespene_workers.append(worker)
             elif surplus_workers != 0:
                 for worker in self.workers: #list should only contain workers who are gathering minerals or returning with minerals
                     if worker.order_target == refinery.tag:
                         worker.gather(self.available_minerals.random)
-                        if worker in self.mineral_workers:
-                            self.mineral_workers.remove(worker)   
     
-### Upgrade ComandCenter
+### Upgrade CommandCenter
     def upgrade_orbital_command(self):
         """This function upgrades the Command Center to an Orbital Command."""
         #TODO Issue is we no longer check can affords before it gets to this point
