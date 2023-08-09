@@ -60,7 +60,7 @@ class Structure:
         self.rallypoint_set = False
         
         ### Misc Variables ###
-        self.debug = True
+        self.debug = False
         if is_townhall:
             self.buildstatus = "COMPLETED"
             self.building_name = "COMMANDCENTER"
